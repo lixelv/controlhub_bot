@@ -1,6 +1,10 @@
 bot.py:
 ```python
-from cnf import *
+import aiofiles
+import asyncio
+import json
+from aiogram import types
+from bot_cnf import *
 
 
 @dp.message_handler(commands=['start'])
@@ -75,15 +79,13 @@ if __name__ == '__main__':
     aiogram.executor.start_polling(dp, skip_updates=True)
 
 ```
-cnf.py:
+bot_cnf.py:
 ```python
 import aiogram
-import requests
-import aiofiles
-import asyncio
-import json
-from aiogram import types
-from envparse import env
+from cnf import *
+
+token = env('TELEGRAM')
+admin_list = env('ADMIN_LIST').split(',')
 
 start_ = 'Привет, я бот созданный чтобы управлять \nкомпьютерами в *40 кабинете школы №358*\. \n\nЧтобы ознакомится с моим функционалом введите */help*'
 
@@ -94,17 +96,22 @@ help_ = """Этот бот создан для управления компью
 
 Для запуска программы на компьютерах введите */a*"""
 
+bot = aiogram.Bot(token, parse_mode='MarkdownV2')
+dp = aiogram.Dispatcher(bot)
+
+```
+cnf.py:
+```python
+from envparse import env
+import requests
+
 env.read_envfile('.env')
+
+link = env('LINK')
 
 def timing():
     return requests.get(link).json()['sleep']
 
-link = env('LINK')
-
-token = env('TELEGRAM')
-admin_list = env('ADMIN_LIST').split(',')
-bot = aiogram.Bot(token, parse_mode='MarkdownV2')
-dp = aiogram.Dispatcher(bot)
 
 ```
 main.py:
@@ -125,9 +132,8 @@ async def read_root():
 run.py:
 ```python
 import subprocess
-import requests
 from time import sleep
-from cnf import link
+from cnf import *
 
 prev_value = requests.get(link).json()
 
