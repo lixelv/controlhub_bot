@@ -4,7 +4,7 @@ from cnf import *
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     print(message.from_user.id)
-    await message.answer('Привет, я бот созданный \n чтобы управлять компьютерами \n в **40 кабинете школы №358**')
+    await message.answer(start_)
 
 
 @dp.message_handler(commands=['h', 'help'])
