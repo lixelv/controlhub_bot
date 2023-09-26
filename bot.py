@@ -1,4 +1,8 @@
-from cnf import *
+import aiofiles
+import asyncio
+import json
+from aiogram import types
+from bot_cnf import *
 
 
 @dp.message_handler(commands=['start'])
