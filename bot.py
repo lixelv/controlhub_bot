@@ -1,6 +1,4 @@
-import aiofiles
 import asyncio
-import json
 from db import SQLite
 from aiogram import types
 from bot_cnf import *
