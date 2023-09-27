@@ -1,4 +1,5 @@
 import aiogram
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from cnf import *
 
 token = env('TELEGRAM')
@@ -15,3 +16,10 @@ help_ = """Этот бот создан для управления компью
 
 bot = aiogram.Bot(token, parse_mode='MarkdownV2')
 dp = aiogram.Dispatcher(bot)
+
+def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    for id_, name_ in lst:
+        kb.add(InlineKeyboardButton(name_, callback_data=f'{prefix}_{id_}'))
+
+    return kb

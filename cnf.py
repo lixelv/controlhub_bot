@@ -7,4 +7,3 @@ link = env('LINK')
 
 def timing():
     return requests.get(link).json()['sleep']
-
