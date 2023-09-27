@@ -48,7 +48,7 @@ class SQLite:
         self.do('INSERT INTO user (id, name) VALUES (?, ?)', (user_id, username))
 
     def is_admin(self, message: Message) -> bool:
-        return not bool(self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,))[0])
+        return not bool(self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,), one=True)[0])
     # endregion
     # region command_bot
 
