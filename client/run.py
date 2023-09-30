@@ -6,16 +6,18 @@ from cnf import *
 
 def send_error(error: str) -> None:
     try:
-        url = f'{link}error?error={error}'
-        requests.post(url)
+        url = f'{link}error'
+        requests.post(url, json={"error": error})
 
     except Exception as e:
         print(e)
 
 def send_success(success: str) -> None:
     try:
-        url = f'{link}success?task={success}'
-        requests.post(url)
+        url = f'{link}success'
+        response = requests.post(url, json={"task": success})
+        if response.status_code != 204:
+            print(f"Error: {response.text}")
 
     except Exception as e:
         print(e)
@@ -34,7 +36,9 @@ while True:
     try:
         value = requests.get(link).json()
 
-        if value != prev_value and value["run"]:
+        print(value)
+
+        if value["run"] != prev_value["run"] and value["run"]:
             try:
                 value["args"][0] = value["args"][0].replace('/user/', f'/{os.getlogin()}/')
                 subprocess.Popen(value["args"])
