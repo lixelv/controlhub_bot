@@ -19,7 +19,10 @@ dp = aiogram.Dispatcher(bot)
 
 def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup(row_width=2)
+    buttons = []
     for id_, name_ in lst:
-        kb.add(InlineKeyboardButton(name_, callback_data=f'{prefix}_{id_}'))
+        buttons.append(InlineKeyboardButton(name_, callback_data=f'{prefix}_{id_}'))
+
+    kb.add(*buttons)
 
     return kb
