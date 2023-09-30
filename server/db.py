@@ -56,7 +56,7 @@ class SQLite:
         await self.do('INSERT INTO user (id, name) VALUES (?, ?)', (user_id, username))
 
     async def is_admin(self, message: Message) -> bool:
-        result = await self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,))
+        result = await self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,), one=True)
         return not bool(result[0])
     # endregion
     # region command_bot
