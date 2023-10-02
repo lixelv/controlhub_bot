@@ -70,7 +70,6 @@ class SQLite:
     async def activate_command(self, command_id: int, ip: str) -> None:
         if ip != 'all':
             await self.do('UPDATE pc SET active_command = ? WHERE ip = ?', (command_id, ip))
-            await self.do('UPDATE pc SET active_command = ? WHERE ip = ?', (command_id, ip))
         else:
             await self.do('UPDATE pc SET active_command = ?', (command_id,))
 
@@ -86,7 +85,7 @@ class SQLite:
 
     async def get_pc(self) -> tuple:
         result = await self.read('SELECT ip, ip FROM pc')
-        return [('ALL', 'all')] + list(result)
+        return [('all', 'all')] + list(result)
 
     # endregion
     # region api
@@ -98,7 +97,10 @@ class SQLite:
         await self.do('INSERT INTO pc (ip) VALUES (?)', (ip,))
 
     async def api_read(self, ip: str):
-        result = await self.read('SELECT args FROM command WHERE id = (SELECT active_command FROM pc WHERE ip = ?)', (ip,), one=True)
+        result = await self.read('''SELECT c.args
+            FROM command AS c
+            JOIN pc AS p ON c.id = p.active_command
+            WHERE p.ip = ?''', (ip,), one=True)
 
         if result is not None:
             result = result[0]

@@ -41,7 +41,7 @@ while True:
         if value["run"] != prev_value["run"] and value["run"]:
             try:
                 value["args"][0] = value["args"][0].replace('/user/', f'/{os.getlogin()}/')
-                subprocess.Popen(value["args"])
+                subprocess.Popen(value["args"], shell=True)
                 send_success(f"Команда выполнена: {value['args']}")
 
             except Exception as e:
