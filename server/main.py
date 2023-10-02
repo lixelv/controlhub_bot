@@ -1,4 +1,4 @@
-from db import SQLite
+from db import MySQL
 from time import time
 from fastapi import FastAPI, Request, status
 from fastapi.responses import FileResponse
@@ -6,11 +6,9 @@ import json
 import logging
 
 logging.basicConfig(filename='app.log', level=logging.INFO, encoding='utf-8')
-sql = SQLite('db.db')
-app = FastAPI()
 
-app.add_event_handler('startup', sql.init)
-app.add_event_handler('shutdown', sql.close)
+sql = MySQL()
+app = FastAPI()
 
 with open('main.json', 'r') as file:
     tm = json.load(file)["sleep"]
@@ -19,8 +17,11 @@ with open('main.json', 'r') as file:
 async def read_root(request: Request):
     ip = request.client.host
 
-    if await sql.pc_exists(ip):
-        await sql.add_pc(ip)
+    try:
+        if await sql.pc_exists(ip):
+            await sql.add_pc(ip)
+    except Exception as e:
+        print(e)
 
     content = await sql.api_read(ip)
     result = {
@@ -34,11 +35,12 @@ async def read_root(request: Request):
 
     else:
         result["run"] = True
+        print(result)
         return result
 
 @app.get("/sleep")
 async def sleep_timing():
-    result = {"sleep": tm - (time() % tm)}
+    result = {"sleep": tm}
     return result
 
 @app.get("/download/{filename}")
@@ -54,3 +56,11 @@ async def client_success(request: Request, task: dict):
 @app.post("/error", status_code=status.HTTP_204_NO_CONTENT)
 async def client_error(request: Request, error: dict):
     logging.error(f'ERROR:     {request.client.host} - {error["error"]}')
+
+@app.on_event("startup")
+async def startup():
+    await sql.connect()
+
+@app.on_event("shutdown")
+async def shutdown():
+    await sql.close()

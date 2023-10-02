@@ -20,4 +20,6 @@ env.read_envfile(env_path)
 link = env('LINK')
 
 def timing():
-    return requests.get(link+'sleep').json()['sleep'] + 0.2
+    result = requests.get(link+'sleep').json()['sleep'] + 0.2
+    print(result)
+    return result

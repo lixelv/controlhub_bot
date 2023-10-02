@@ -1,50 +1,44 @@
-import aiosqlite
+import aiomysql, asyncio
 from aiogram.types import Message
 
-class SQLite:
+class MySQL:
     # region stuff
-    def __init__(self, db_name):
-        self.connection = None
-        self.cursor = None
-        self.db_name = db_name
+    def __init__(self):
+        self.pool = None
 
-    async def init(self):
-        db_name = self.db_name
-        self.connection = await aiosqlite.connect(db_name)
-        self.cursor = await self.connection.cursor()
+    async def connect(self):
+        self.pool = await aiomysql.create_pool(
+            read_default_file='mysql.cnf',
 
-        await self.do("""CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY UNIQUE NOT NULL,
-            name TEXT,
-            is_admin INTEGER DEFAULT (0)
-        );""")
+        )
 
-        await self.do("""CREATE TABLE IF NOT EXISTS command (
-            id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-            user_id INTEGER REFERENCES user (id),
-            name TEXT,
-            args TEXT
-        );""")
+    async def keep_alive(self):
+        while True:
+            await self.read('SELECT 1;')
+            await asyncio.sleep(14400)
 
-        await self.do("""CREATE TABLE IF NOT EXISTS pc (
-            ip TEXT PRIMARY KEY UNIQUE NOT NULL,
-            active_command INTEGER REFERENCES command (id)
-        );""")
+    async def do(self, sql, values=()):
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(sql.replace('?', '%s'), values)
+                await conn.commit()
 
-    async def do(self, query: str, values=()) -> None:
-        await self.cursor.execute(query, values)
-        await self.connection.commit()
+    async def read(self, sql, values=(), one=False):
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(sql.replace('?', '%s'), values)
+                if one:
+                    await conn.commit()
+                    return await cur.fetchone()
+                else:
+                    await conn.commit()
+                    return await cur.fetchall()
 
-    async def read(self, query: str, values=(), one=False) -> tuple:
-        await self.cursor.execute(query, values)
-        if one:
-            return await self.cursor.fetchone()
-        else:
-            return await self.cursor.fetchall()
 
     async def close(self):
-        await self.cursor.close()
-        await self.connection.close()
+        self.pool.close()
+        await self.pool.wait_closed()
+
     # endregion
     # region user
 
@@ -57,6 +51,7 @@ class SQLite:
 
     async def is_admin(self, message: Message) -> bool:
         result = await self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,), one=True)
+        print(result)
         return not bool(result[0])
     # endregion
     # region command_bot
@@ -100,11 +95,8 @@ class SQLite:
         await self.do('INSERT INTO pc (ip) VALUES (?)', (ip,))
 
     async def api_read(self, ip: str):
-        result = await self.read('''SELECT c.args
-            FROM command AS c
-            JOIN pc AS p ON c.id = p.active_command
-            WHERE p.ip = ?''', (ip,), one=True)
-
+        result = await self.read('SELECT args from command where id = (select active_command from pc where ip = ?)', (ip,), one=True)
+        print(result)
         if result is not None:
             result = result[0]
 

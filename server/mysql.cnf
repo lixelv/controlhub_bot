@@ -1,0 +1,7 @@
+[client]
+host = localhost
+user = your-user
+password = psw
+port = 3306
+database = db
+allowPublicKeyRetrieval = true

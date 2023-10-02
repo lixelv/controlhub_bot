@@ -1,9 +1,14 @@
 import aiogram
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from asyncio import get_event_loop
+from db import MySQL
 from cnf import *
 
+# db_url = f'mysql://{env("USER_")}:{env("PASSWORD_")}@{env("HOST_")}:{env("PORT_")}/{env("DB_")}?allowPublicKeyRetrieval=true'
+
+sql = MySQL()
+
 token = env('TELEGRAM')
-admin_list = env('ADMIN_LIST').split(',')
 
 start_ = 'Привет, я бот созданный чтобы управлять \nкомпьютерами в *40 кабинете школы №358*\. \n\nЧтобы ознакомится с моим функционалом введите */help*'
 

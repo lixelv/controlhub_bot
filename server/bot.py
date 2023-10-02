@@ -1,12 +1,9 @@
 import asyncio
-from db import SQLite
 from aiogram import types
 from bot_cnf import *
 
 create_hidden_folder('C:/scripts')
 create_hidden_folder('C:/scripts/data')
-
-sql = SQLite('db.db')
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -120,4 +117,4 @@ async def handle_docs(message: types.Message):
 
 
 if __name__ == '__main__':
-    aiogram.executor.start_polling(dp, skip_updates=True, on_startup=lambda dp: sql.init(), on_shutdown=lambda dp: sql.close())
+    aiogram.executor.start_polling(dp, skip_updates=True, on_startup=lambda dp: sql.connect(), on_shutdown=lambda dp: sql.close())
