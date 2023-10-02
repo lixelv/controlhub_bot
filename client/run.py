@@ -57,6 +57,10 @@ while True:
                         elif val[0] == 'sleep':
                             sleep(float(val[1].replace(',', '.')))
 
+                        # для запуска чего-то специфичного
+                        elif val[0] == 'eval':
+                            eval(', '.join(val[1:]))
+
                         # при использовании Popen
                         else:
                             val[0] = val[0].replace('/user/', f'/{os.getlogin()}/')
