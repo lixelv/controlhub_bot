@@ -5,6 +5,34 @@ class MySQL:
     # region stuff
     def __init__(self):
         self.pool = None
+    """
+    Structure of tables in db:
+    
+    -- table user
+    CREATE TABLE `user` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `name` varchar(255) DEFAULT NULL,
+      `is_admin` tinyint DEFAULT '0',
+      PRIMARY KEY (`id`)
+    );
+    
+    -- table command
+    CREATE TABLE `command` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `user_id` int DEFAULT NULL,
+      `name` varchar(255) DEFAULT NULL,
+      `args` text,
+      `hidden` tinyint DEFAULT '0',
+      PRIMARY KEY (`id`)
+    );
+    
+    --table pc
+    CREATE TABLE `pc` (
+      `ip` varchar(255) NOT NULL,
+      `active_command` int DEFAULT NULL,
+      PRIMARY KEY (`ip`)
+    );
+    """
 
     async def connect(self):
         self.pool = await aiomysql.create_pool(
