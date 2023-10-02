@@ -14,7 +14,7 @@ help_ = """Этот бот создан для управления компью
 
 Для запуска программы на компьютерах введите */a*"""
 
-bot = aiogram.Bot(token, parse_mode='MarkdownV2')
+bot = aiogram.Bot(token)
 dp = aiogram.Dispatcher(bot)
 
 def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:

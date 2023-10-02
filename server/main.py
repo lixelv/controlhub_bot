@@ -1,6 +1,7 @@
 from db import SQLite
 from time import time
 from fastapi import FastAPI, Request, status
+from fastapi.responses import FileResponse
 import json
 import logging
 
@@ -39,6 +40,10 @@ async def read_root(request: Request):
 async def sleep_timing():
     result = {"sleep": tm - (time() % tm)}
     return result
+
+@app.get("/download/{filename}")
+async def download(filename: str):
+    return FileResponse(f'C:/scripts/data/{filename}', media_type="application/octet-stream")
 
 
 @app.post("/success", status_code=status.HTTP_204_NO_CONTENT)
