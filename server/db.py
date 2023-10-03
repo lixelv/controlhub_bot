@@ -1,10 +1,20 @@
 import aiomysql, asyncio
 from aiogram.types import Message
 
+
 class MySQL:
     # region stuff
     def __init__(self):
+        self.loop = None
         self.pool = None
+
+    @classmethod
+    async def create(cls, loop):
+        self = MySQL()
+        self.loop = loop
+        self.pool = await self.connect()
+        return self
+
     """
     Structure of tables in db:
     
@@ -26,17 +36,26 @@ class MySQL:
       PRIMARY KEY (`id`)
     );
     
-    --table pc
+    -- table pc
     CREATE TABLE `pc` (
       `ip` varchar(255) NOT NULL,
       `active_command` int DEFAULT NULL,
       PRIMARY KEY (`ip`)
     );
     """
+    """
+    states:
+    0 - normal
+    1 - activate
+    2 - set_arg
+    3 - final activation
+    4 - delete
+"""
 
     async def connect(self):
-        self.pool = await aiomysql.create_pool(
+        return await aiomysql.create_pool(
             read_default_file='mysql.cnf',
+            loop=self.loop
 
         )
 
@@ -62,7 +81,6 @@ class MySQL:
                     await conn.commit()
                     return await cur.fetchall()
 
-
     async def close(self):
         self.pool.close()
         await self.pool.wait_closed()
@@ -79,8 +97,32 @@ class MySQL:
 
     async def is_admin(self, message: Message) -> bool:
         result = await self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,), one=True)
-        print(result)
         return not bool(result[0])
+
+    async def get_state(self, user_id: int) -> int:
+        result = await self.read('SELECT state FROM user WHERE id = ?', (user_id,), one=True)
+        return result[0]
+
+    async def state_for_args(self, message: Message) -> bool:
+        result = await self.get_state(message.from_user.id)
+        return result == 2
+
+    async def set_state(self, user_id: int, state: int) -> None:
+        print(user_id, state)
+        await self.do('UPDATE user SET state = ? WHERE id = ?', (state, user_id))
+
+    async def get_active_command(self, user_id: int) -> str:
+        result = await self.read('SELECT args FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
+        return result[0]
+
+    async def get_active_command_name(self, user_id: int) -> str:
+        result = await self.read('SELECT name FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
+        return result[0]
+
+    async def add_active_command(self, user_id: int, command_id: int) -> None:
+        print(user_id, command_id)
+        await self.do('UPDATE user SET active_command = ? WHERE id = ?', (command_id, user_id))
+
     # endregion
     # region command_bot
 
@@ -102,16 +144,22 @@ class MySQL:
     async def read_for_bot(self, user_id: int) -> tuple:
         return await self.read('SELECT id, name FROM command WHERE user_id IS NULL OR user_id = ? AND hidden = 0', (user_id,))
 
-    async def get_last_command(self, user_id: int) -> tuple:
-        return await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
+    async def get_last_command(self, user_id: int) -> int:
+        result = await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
+        return result[0]
 
     async def command_name_from_id(self, command_id: int) -> str:
         result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
         return result[0]
 
     async def get_pc(self) -> tuple:
-        result = await self.read('SELECT ip, ip FROM pc')
-        return [('all', 'all')] + list(result)
+        result = await self.read('SELECT ip FROM pc')
+        result = [(i[0], i[0]) for i in result]
+        return [('all', 'all')] + result
+
+    async def get_command(self, command_id: int) -> tuple:
+        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)
+        return result
 
     # endregion
     # region api
@@ -124,7 +172,6 @@ class MySQL:
 
     async def api_read(self, ip: str):
         result = await self.read('SELECT args from command where id = (select active_command from pc where ip = ?)', (ip,), one=True)
-        print(result)
         if result is not None:
             result = result[0]
 

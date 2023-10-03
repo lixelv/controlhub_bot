@@ -18,8 +18,10 @@ env_path = os.path.join(script_dir, '.env')
 env.read_envfile(env_path)
 
 link = env('LINK')
+store = env('STORE')
 
 def timing():
     result = requests.get(link+'sleep').json()['sleep'] + 0.2
     print(result)
     return result
+
