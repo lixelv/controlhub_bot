@@ -22,6 +22,8 @@ store = env('STORE')
 
 def timing():
     result = requests.get(link+'sleep').json()['sleep'] + 0.2
-    print(result)
     return result
+
+def send_update():
+    requests.get(link+'update')
 

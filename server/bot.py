@@ -105,11 +105,11 @@ async def f_activate(callback: types.CallbackQuery):
 
     await sql.activate_command(command_id, ip)
 
-    await asyncio.sleep(timing())
+    send_update()
+    await asyncio.sleep(0.2)
 
     await sql.deactivate_command()
 
-    await callback.message.edit_text(f'Команда `{command_name}` выполнена на  `{ip}`\.', parse_mode='MarkdownV2')
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'd')
 async def callback(callback: types.CallbackQuery):
@@ -136,11 +136,11 @@ async def handle_docs(message: types.Message):
     await sql.add_command(message.from_user.id, f'download, /link/{document.file_name}', f'download {document.file_name}', hidden=1)
 
     command_id = await sql.get_last_command(message.from_user.id)
-    command_id = command_id[0]
 
     await sql.activate_command(command_id, 'all')
 
-    await asyncio.sleep(timing())
+    send_update()
+    await asyncio.sleep(0.5)
 
     await sql.deactivate_command()
 

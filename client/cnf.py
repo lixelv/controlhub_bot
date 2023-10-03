@@ -24,3 +24,6 @@ def timing():
     result = requests.get(link+'sleep').json()['sleep'] + 0.2
     return result
 
+def send_update():
+    requests.post(link+'update')
+

@@ -17,9 +17,7 @@ def comppile(s: str):
                 s[i] = s[i].split(' @* ')
                 s[i][1] = int(s[i][1])
             else:
-                s[i] = (s[i], 1)
-
-        print(s)
+                s[i] = [s[i], 1]
 
         # разделяем запросы на списки
         s = [(split(item[0], ', '), item[1]) for item in s]

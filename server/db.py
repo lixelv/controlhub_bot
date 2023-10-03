@@ -20,9 +20,11 @@ class MySQL:
     
     -- table user
     CREATE TABLE `user` (
-      `id` int NOT NULL AUTO_INCREMENT,
+      `id` int NOT NULL,
       `name` varchar(255) DEFAULT NULL,
       `is_admin` tinyint DEFAULT '0',
+      `state` int NOT NULL DEFAULT '0',
+      `active_command` int DEFAULT NULL,
       PRIMARY KEY (`id`)
     );
     
