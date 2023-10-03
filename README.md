@@ -26,27 +26,27 @@
    ```
 
 2. **Нажатие клавиши:**
-   ````plaintext
+   ```plaintext
    press, enter
    ```
 
 3. **Нажатие комбинации клавиш:**
-   ````plaintext
+   ```plaintext
    hotkey, ctrl, c
    ```
 
 4. **Клик мышью:**
-   ````plaintext
+   ```plaintext
    click, left
    ```
 
 5. **Ввод текста:**
-   ````plaintext
+   ```plaintext
    write, Привет, мир!
    ```
 
 6. **Задержка:**
-   ````plaintext
+   ```plaintext
    sleep, 2.5
    ```
 
@@ -56,13 +56,13 @@
    ```
 
 8. **Запуск внешней программы:**
-   ````plaintext
+   ```plaintext
    /path/to/program.exe, --option, value
    ```
 
 ## Пример строки с командами
 
-````plaintext
+```plaintext
 download, /link/file.txt & press, enter & write, Привет, мир! & sleep, 1.5 & eval, print("Команда выполнена")
 ```
 
