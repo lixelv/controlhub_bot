@@ -33,9 +33,7 @@ def send_error(error: str) -> None:
 def send_success(success: str) -> None:
     try:
         url = f'{link}success'
-        response = requests.post(url, json={"task": success})
-        if response.status_code != 204:
-            print(f"Error: {response.text}")
+        requests.post(url, json={"task": success})
 
     except Exception as e:
         print(e)
