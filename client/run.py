@@ -19,6 +19,7 @@ async def listen_server(uri):
                     data = json.loads(data)
 
                     if data.get("run"):
+                        print(data["args"])
                         thread = threading.Thread(target=comppile, args=(data["args"],))
                         thread.start()
         except Exception as e:
