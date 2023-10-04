@@ -138,11 +138,17 @@ class MySQL:
         else:
             await self.do('UPDATE pc SET active_command = ?', (command_id,))
 
-    async def deactivate_command(self) -> None:
-        await self.do('UPDATE pc SET active_command = NULL')
+    async def deactivate_command(self, command_id=None) -> None:
+        if command_id:
+            await self.do('UPDATE pc SET active_command = NULL WHERE id = ?', (command_id,))
+        else:
+            await self.do('UPDATE pc SET active_command = NULL')
 
-    async def read_for_bot(self, user_id: int) -> tuple:
-        return await self.read('SELECT id, name FROM command WHERE user_id IS NULL OR user_id = ? AND hidden = 0', (user_id,))
+    async def read_cmd_for_bot(self, user_id: int) -> tuple:
+        return await self.read('SELECT id, name FROM command WHERE user_id = ? AND hidden = 0', (user_id,))
+
+    async def read_cmd_for_user(self, user_id: int) -> tuple:
+        return await self.read('SELECT id, name FROM command WHERE user_id = ? AND hidden = 1 AND name != "download"', (user_id,))
 
     async def get_last_command(self, user_id: int) -> int:
         result = await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
@@ -150,6 +156,10 @@ class MySQL:
 
     async def command_name_from_id(self, command_id: int) -> str:
         result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
+        return result[0] if result else None
+
+    async def get_cmd_from_id(self, command_id: int) -> str:
+        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)
         return result[0] if result else None
 
     async def get_pc(self) -> list:

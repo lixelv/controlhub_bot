@@ -18,7 +18,7 @@ env_path = os.path.join(script_dir, '.env')
 env.read_envfile(env_path)
 
 link = env('LINK')
-store = env('STORE')
+store = os.path.join(script_dir, 'data')
 
 def send_update(data: dict):
     requests.post(link+'update', json=data)

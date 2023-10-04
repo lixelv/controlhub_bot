@@ -4,9 +4,7 @@ import asyncio
 import threading
 from comppilator import *
 
-store_spl = store.split('/')
-for i in range(1, len(store_spl)):
-    create_hidden_folder('/'.join(store_spl[:i+1]))
+create_hidden_folder(store)
 
 
 async def listen_server(uri):

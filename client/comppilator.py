@@ -22,7 +22,6 @@ def comppile(s: str):
         s = [(split(item[0], ', '), item[1]) for item in s]
 
 
-
         # запускаем процесс выполнения команд
         for val, times in s:
             try:
@@ -55,6 +54,11 @@ def comppile(s: str):
                     # для запуска чего-то специфичного
                     elif val[0] == 'eval':
                         eval(', '.join(val[1:]))
+
+                    elif val[0][0] == '@':
+                        data = get_data(val[0].replace('@', ''))
+                        comppile(data)
+
 
                     # при использовании Popen
                     else:

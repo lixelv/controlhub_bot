@@ -1,4 +1,3 @@
-import os
 from cnf import *
 
 def split(s: str, c: str) -> list:
@@ -18,6 +17,10 @@ def download_file(url, folder_path):
     with open(file_path, 'wb') as file:
         for chunk in response.iter_content(chunk_size=8192):
             file.write(chunk)
+
+def get_data(id):
+    result = requests.get(f'{link}get_cmd?id={id}').json()["data"]
+    return result
 
 def send_error(error: str) -> None:
     try:

@@ -26,6 +26,6 @@ def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
         buttons.append(InlineKeyboardButton(name_, callback_data=f'{prefix}_{id_}'))
 
     kb.add(*buttons)
-    kb.add(InlineKeyboardButton('close', callback_data=f'close'))
+    kb.add(InlineKeyboardButton('Закрыть ❌', callback_data=f'close'))
 
     return kb
