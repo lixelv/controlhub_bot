@@ -103,26 +103,24 @@ class MySQL:
 
     async def get_state(self, user_id: int) -> int:
         result = await self.read('SELECT state FROM user WHERE id = ?', (user_id,), one=True)
-        return result[0]
+        return result[0] if result else None
 
     async def state_for_args(self, message: Message) -> bool:
         result = await self.get_state(message.from_user.id)
         return result == 2
 
     async def set_state(self, user_id: int, state: int) -> None:
-        print(user_id, state)
         await self.do('UPDATE user SET state = ? WHERE id = ?', (state, user_id))
 
     async def get_active_command(self, user_id: int) -> str:
         result = await self.read('SELECT args FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
-        return result[0]
+        return result[0] if result else None
 
     async def get_active_command_name(self, user_id: int) -> str:
         result = await self.read('SELECT name FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
-        return result[0]
+        return result[0] if result else None
 
     async def add_active_command(self, user_id: int, command_id: int) -> None:
-        print(user_id, command_id)
         await self.do('UPDATE user SET active_command = ? WHERE id = ?', (command_id, user_id))
 
     # endregion
@@ -148,11 +146,11 @@ class MySQL:
 
     async def get_last_command(self, user_id: int) -> int:
         result = await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
-        return result[0]
+        return result[0] if result else None
 
     async def command_name_from_id(self, command_id: int) -> str:
         result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
-        return result[0]
+        return result[0] if result else None
 
     async def get_pc(self) -> list:
         result = await self.read('SELECT ip FROM pc')
@@ -179,8 +177,8 @@ class MySQL:
 
     async def api_read(self, ip: str):
         result = await self.read('SELECT args from command where id = (select active_command from pc where ip = ?)', (ip,), one=True)
-        if result is not None:
-            result = result[0]
+
+        result = result[0] if result else None
 
         return result
 

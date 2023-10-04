@@ -26,3 +26,7 @@ def send_update(data: dict):
 def get_websockets():
     return requests.get(link+'ping_websockets').json()["data"]
 
+def get_ips():
+    data = requests.get(link+'ping_ips').json()["data"]
+    return [('all', 'all')] + data if data else None
+

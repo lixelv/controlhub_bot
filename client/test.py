@@ -1,4 +1,14 @@
 import requests
+import threading
 
-r = requests.post('http://localhost:8001/', json={"a": 1, "b": 2})
-print(r.json())
+def get_data(json):
+    response = requests.post('http://localhost:8001/', json=json)
+    print(response.json())
+
+tasks = []
+
+for i in range(100):
+    tasks.append(threading.Thread(target=get_data, args=({"args": i},)))
+
+for i in tasks:
+    i.start()

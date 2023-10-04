@@ -78,11 +78,10 @@ async def delete(message: types.Message):
 @dp.message_handler(commands=['c', 'conn', 'connect', 'connection'])
 async def connection(message: types.Message):
     result = get_websockets()
-    print(result)
     if result is None:
         await message.answer('Нет активных соединений')
     else:
-        await message.answer(result)
+        await message.answer(result, parse_mode='MarkdownV2')
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):
@@ -93,9 +92,14 @@ async def callback(callback: types.CallbackQuery):
 
     if command.count('@arg') == 0:
 
-        kb = inline(await sql.get_pc(), f'f_{command_id}')
+        ips = get_ips()
+        if ips:
+            kb = inline(ips, f'f_{command_id}')
 
-        await callback.message.edit_text(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+            await callback.message.edit_text(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+
+        else:
+            await callback.message.edit_text('Нет активных компьютеров', parse_mode='MarkdownV2')
 
     else:
         await sql.set_state(callback.from_user.id, 2)
@@ -128,7 +132,8 @@ async def callback(callback: types.CallbackQuery):
     command_name = await sql.command_name_from_id(command_id)
 
     await sql.delete_command(command_id)
-    await callback.message.edit_text(f'Команда `{command_name}` была удалена \.', parse_mode='MarkdownV2')
+    kb = inline(await sql.read_for_bot(callback.from_user.id), prefix='d')
+    await callback.message.edit_text(f'Команда `{command_name}` была удалена \.', reply_markup=kb, parse_mode='MarkdownV2')
 
 @dp.message_handler(content_types='document')
 async def handle_docs(message: types.Message):
@@ -159,17 +164,28 @@ async def handle_docs(message: types.Message):
 
     await msg.edit_text(f"Файл {document.file_name} обработан.")
 
+@dp.callback_query_handler(lambda callback: callback.data == 'close')
+async def close_kb(callback: types.CallbackQuery):
+    await callback.message.delete()
+
 @dp.message_handler(sql.state_for_args)
 async def additional_args(message: types.Message):
+    await sql.set_state(message.from_user.id, 0)
+
     command_1_st = await sql.get_active_command(message.from_user.id)
     command_name = await sql.get_active_command_name(message.from_user.id)
 
     await sql.add_command(message.from_user.id, command_1_st.replace('@arg', message.text), command_name, 1)
     command_id = await sql.get_last_command(message.from_user.id)
 
-    kb = inline(await sql.get_pc(), f'f_{command_id}')
+    ips = get_ips()
+    if ips:
+        kb = inline(ips, f'f_{command_id}')
 
-    await message.reply(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+        await message.answer(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+
+    else:
+        await message.answer('Нет активных компьютеров', parse_mode='MarkdownV2')
 
 
 if __name__ == '__main__':

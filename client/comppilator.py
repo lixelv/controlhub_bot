@@ -25,8 +25,8 @@ def comppile(s: str):
 
         # запускаем процесс выполнения команд
         for val, times in s:
-            for _ in range(times):
-                try:
+            try:
+                for _ in range(times):
                     # при установке
                     if val[0] == 'download':
                         val[1] = val[1].replace('/link/', f'{link}download/')
@@ -61,10 +61,10 @@ def comppile(s: str):
                         val[0] = val[0].replace('/user/', f'/{os.getlogin()}/')
                         subprocess.Popen(val, shell=True)
 
-                    send_success(f"Команда выполнена: {val}")
+                send_success(f"Команда выполнена: {val}")
 
-                except Exception as e:
-                    send_error(f"Ошибка при выполнении команды: {e}")
+            except Exception as e:
+                send_error(f"Ошибка при выполнении команды: {e}")
 
         # отправляем отчет об ошибке
     except Exception as e:

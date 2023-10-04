@@ -14,11 +14,11 @@ app = FastAPI()
 
 logging.basicConfig(filename='app.log', level=logging.INFO, encoding='utf-8')
 
-def log_error(ip: str, message: str):
-    logging.error(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {ip} - {message}')
+def log_error(client, message: str):
+    logging.error(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {client.host}:{client.port} - {message}')
 
-def log_info(ip: str, message: str):
-    logging.info(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {ip} - {message}')
+def log_info(client, message: str):
+    logging.info(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {client.host}:{client.port} - {message}')
 
 with open('main.json', 'r') as file:
     tm = json.load(file)["sleep"]
@@ -34,7 +34,7 @@ async def read_root(request: Request):
         if await sql.pc_exists(ip):
             await sql.add_pc(ip)
     except Exception as e:
-        log_error(request.client.host, e)
+        log_error(request.client, e)
 
     content = await sql.api_read(ip)
     result = {
@@ -55,7 +55,7 @@ async def read_root(request: Request):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     active_connections.append(websocket)
-    log_info(websocket.client.host, f"Client connected")
+    log_info(websocket.client, f"Client connected")
 
     ip = websocket.client.host
 
@@ -63,7 +63,7 @@ async def websocket_endpoint(websocket: WebSocket):
         if await sql.pc_exists(ip):
             await sql.add_pc(ip)
     except Exception as e:
-        log_error(websocket.client.host, e)
+        log_error(websocket.client, e)
 
     try:
         while True:
@@ -71,7 +71,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # ... handle incoming messages ...
     except WebSocketDisconnect:
         active_connections.remove(websocket)
-        log_info(websocket.client.host, f"Client disconnected")
+        log_info(websocket.client, f"Client disconnected")
     finally:
         if websocket.client_state == 0:  # 0 is CONNECTED state
             await websocket.close()
@@ -118,10 +118,10 @@ async def ping_websockets():
         return {
             "data": "\n".join(
                 [
-                    f"{i + 1} connection:\n"
-                    f"host: {active_connections[i].client.host}\n "
-                    f"port: {active_connections[i].client.port}\n "
-                    f"state: {active_connections[i].client_state}\n"
+                    f"*{i + 1} connection\:*\n"
+                    f"host\:  `{active_connections[i].client.host}`\n "
+                    f"port\:  `{active_connections[i].client.port}`\n "
+                    f"state\: `{active_connections[i].client_state}`\n"
                     for i in range(len(active_connections))
                 ]
             )
@@ -129,15 +129,28 @@ async def ping_websockets():
     else:
         return {"data": None}
 
+@app.get("/ping_ips")
+async def ping_ips():
+    if active_connections:
+        return {
+            "data": [
+                (active_connections[i].client.host,
+                 f'({i + 1}) {active_connections[i].client.host}')
+                for i in range(len(active_connections))
+            ]
+        }
+    else:
+        return {"data": None}
+
 
 @app.post("/success", status_code=status.HTTP_204_NO_CONTENT)
 async def client_success(request: Request, task: dict):
-    log_info(request.client.host, task["task"])
+    log_info(request.client, task["task"])
 
 
 @app.post("/error", status_code=status.HTTP_204_NO_CONTENT)
 async def client_error(request: Request, error: dict):
-    log_error(request.client.host, error["error"])
+    log_error(request.client, error["error"])
 
 
 @app.on_event("startup")
