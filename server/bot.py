@@ -69,7 +69,6 @@ async def get_hidden_programs(message: types.Message):
 @dp.message_handler(commands=['p', 'prog', 'program', 'hp', 'hid_prog', 'hidden_program'])
 async def program(message: types.Message):
     args = message.get_args()
-    args = args.replace('\\', '/')
     is_hp = message.get_command() in ['/hp', '/hid_prog', '/hidden_program']
 
     if ' @.@ ' in args:
@@ -168,7 +167,31 @@ async def callback(callback: types.CallbackQuery):
 
     await callback.message.edit_text(f'Команда `{command_name}` была удалена \.', reply_markup=kb, parse_mode='MarkdownV2')
 
-@dp.message_handler(content_types='document')
+@dp.callback_query_handler(lambda callback: callback.data == 'close')
+async def close_kb(callback: types.CallbackQuery):
+    await callback.message.delete()
+
+@dp.message_handler(sql.state_for_args)
+async def additional_args(message: types.Message):
+    await sql.set_state(message.from_user.id, 0)
+
+    command_1_st = await sql.get_active_command(message.from_user.id)
+    command_name = await sql.get_active_command_name(message.from_user.id)
+
+    await sql.add_command(message.from_user.id, command_1_st.replace('@arg', message.text), command_name, 1)
+    command_id = await sql.get_last_command(message.from_user.id)
+
+    ips = get_ips()
+    if ips:
+        kb = inline(ips, f'f_{command_id}')
+
+        await message.answer(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+
+    else:
+        await message.answer('Нет активных компьютеров', parse_mode='MarkdownV2')
+
+
+@dp.message_handler(content_types=['document'])
 async def handle_docs(message: types.Message):
     document = message.document
     file_id = document.file_id
@@ -196,29 +219,6 @@ async def handle_docs(message: types.Message):
     await sql.delete_command(command_id)
 
     await msg.edit_text(f"Файл {document.file_name} обработан.")
-
-@dp.callback_query_handler(lambda callback: callback.data == 'close')
-async def close_kb(callback: types.CallbackQuery):
-    await callback.message.delete()
-
-@dp.message_handler(sql.state_for_args)
-async def additional_args(message: types.Message):
-    await sql.set_state(message.from_user.id, 0)
-
-    command_1_st = await sql.get_active_command(message.from_user.id)
-    command_name = await sql.get_active_command_name(message.from_user.id)
-
-    await sql.add_command(message.from_user.id, command_1_st.replace('@arg', message.text), command_name, 1)
-    command_id = await sql.get_last_command(message.from_user.id)
-
-    ips = get_ips()
-    if ips:
-        kb = inline(ips, f'f_{command_id}')
-
-        await message.answer(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
-
-    else:
-        await message.answer('Нет активных компьютеров', parse_mode='MarkdownV2')
 
 
 if __name__ == '__main__':
