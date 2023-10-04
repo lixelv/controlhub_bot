@@ -20,10 +20,9 @@ env.read_envfile(env_path)
 link = env('LINK')
 store = env('STORE')
 
-def timing():
-    result = requests.get(link+'sleep').json()['sleep'] + 0.2
-    return result
+def send_update(data: dict):
+    requests.post(link+'update', json=data)
 
-def send_update():
-    requests.post(link+'update')
+def get_websockets():
+    return requests.get(link+'ping_websockets')["data"]
 

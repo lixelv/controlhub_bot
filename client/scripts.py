@@ -1,6 +1,5 @@
 import os
 from cnf import *
-import os
 
 def split(s: str, c: str) -> list:
     if s.count(c) != 0:

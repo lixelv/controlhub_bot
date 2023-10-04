@@ -154,10 +154,15 @@ class MySQL:
         result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
         return result[0]
 
-    async def get_pc(self) -> tuple:
+    async def get_pc(self) -> list:
         result = await self.read('SELECT ip FROM pc')
         result = [(i[0], i[0]) for i in result]
         return [('all', 'all')] + result
+
+    async def get_active_pc(self) -> list:
+        result = await self.read('SELECT ip FROM pc WHERE active_command IS NOT NULL')
+        result = [i[0] for i in result]
+        return result
 
     async def get_command(self, command_id: int) -> tuple:
         result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)

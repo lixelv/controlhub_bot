@@ -75,6 +75,15 @@ async def delete(message: types.Message):
     kb = inline(await sql.read_for_bot(message.from_user.id), prefix='d')
     await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
 
+@dp.message_handler(commands=['c', 'conn', 'connect', 'connection'])
+async def connection(message: types.Message):
+    result = get_websockets()
+    print(result)
+    if result is None:
+        await message.answer('Нет активных соединений')
+    else:
+        await message.answer(result)
+
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):
     command_id = int(callback.data.split('_')[1])
@@ -105,8 +114,10 @@ async def f_activate(callback: types.CallbackQuery):
 
     await sql.activate_command(command_id, ip)
 
-    send_update()
-    await asyncio.sleep(0.2)
+    data = await sql.get_active_pc()
+
+    send_update({"data": data})
+    await asyncio.sleep(1)
 
     await sql.deactivate_command()
 
@@ -139,8 +150,10 @@ async def handle_docs(message: types.Message):
 
     await sql.activate_command(command_id, 'all')
 
-    send_update()
-    await asyncio.sleep(0.5)
+    data = await sql.get_active_pc()
+
+    send_update({"data": data})
+    await asyncio.sleep(1)
 
     await sql.deactivate_command()
 
