@@ -1,3 +1,7 @@
-import subprocess
+import fastapi
 
-eval("[subprocess.Popen(['notepad.exe']) for _ in range(3)]")
+app = fastapi.FastAPI()
+
+@app.get('/')
+async def read_root():
+    return {"Hello": "World"}

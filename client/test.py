@@ -26,4 +26,4 @@ async def listen_server(uri):
             sleep(10)
 
 if __name__ == '__main__':
-    asyncio.run(listen_server(f'{link.replace("http", "ws")}ws'))
+    asyncio.get_event_loop().run_until_complete(listen_server(f'{link.replace("http", "ws")}ws'))
