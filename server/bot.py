@@ -1,7 +1,6 @@
 import asyncio
 from aiogram import types
 from bot_cnf import *
-from server.db import MySQL
 
 create_hidden_folder(store)
 loop = asyncio.get_event_loop()
@@ -65,6 +64,13 @@ async def get_hidden_programs(message: types.Message):
         s += f'*id\:* `{el[0]}`, *name\:* `{el[1]}`\n'
     await message.answer(s, parse_mode='MarkdownV2')
 
+@dp.message_handler(commands=['lp', 'lunch', 'lunch_pc'])
+async def lunch_pc(message: types.Message):
+    data = await sql.read_mac_pc_for_bot()
+    if data:
+        kb = inline(('all', 'all')+data, prefix='lp')
+        await message.answer('Выберете компьютер для запуска:', reply_markup=kb)
+    
 
 @dp.message_handler(commands=['p', 'prog', 'program', 'hp', 'hid_prog', 'hidden_program'])
 async def program(message: types.Message):
@@ -110,6 +116,11 @@ async def delete(message: types.Message):
 async def restart(message: types.Message):
     kb = inline(await sql.read_cmd_for_user(message.from_user.id), prefix='dh')
     await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
+    
+@dp.callback_query_handler(lambda callback: callback.data[0] == 'l')
+async def lunch_pc(callback: types.CallbackQuery):
+    s = lunch_pc(callback.data.split('_')[1])
+    await callback.message.edit_text(s, parse_mode='MarkdownV2')
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):

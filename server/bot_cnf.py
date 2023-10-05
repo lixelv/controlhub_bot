@@ -32,3 +32,16 @@ def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
     kb.add(InlineKeyboardButton('Закрыть ❌', callback_data=f'close'))
 
     return kb
+
+def send_update(data: dict):
+    requests.post(link+'update', json=data)
+
+def get_websockets():
+    return requests.get(link+'ping_websockets').json()["data"]
+
+def get_ips():
+    data = requests.get(link+'ping_ips').json()["data"]
+    return [('all', 'all')] + data if data else None
+
+def lunch_pc(ip):
+    return requests.get(f'{link}lunch_pc', json={"data": ip})

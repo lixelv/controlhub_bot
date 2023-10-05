@@ -2,6 +2,7 @@ from db import MySQL
 from time import time
 from fastapi import FastAPI, Request, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
+from wakeonlan import send_magic_packet
 from asyncio import get_event_loop
 from cnf import create_hidden_folder, store
 from typing import List
@@ -14,6 +15,7 @@ create_hidden_folder(store)
 tm = 5
 
 loop = get_event_loop()
+sql = MySQL()
 app = FastAPI()
 
 logging.basicConfig(filename='app.log', level=logging.INFO, encoding='utf-8')
@@ -21,10 +23,12 @@ active_connections: List[WebSocket] = []
 
 
 def log_error(client, message: str):
-    logging.error(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {client.host}:{client.port} - {message}')
+    logging.error(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | '
+                  f'{client.host}:{client.port} - {message}')
 
 def log_info(client, message: str):
-    logging.info(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | {client.host}:{client.port} - {message}')
+    logging.info(f' {datetime.fromtimestamp(time()).strftime("%Y-%m-%d %H:%M:%S")} | '
+                 f'{client.host}:{client.port} - {message}')
 
 @app.get("/")
 async def read_root(request: Request):
@@ -55,30 +59,39 @@ async def read_root(request: Request):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     active_connections.append(websocket)
-    log_info(websocket.client, f"Client connected")
+    log_info(websocket.client, "Client connected")
 
     ip = websocket.client.host
 
     try:
-        if await sql.pc_exists(ip):
-            await sql.add_pc(ip)
-    except Exception as e:
-        log_error(websocket.client, e)
-
-    try:
         while True:
-            data = await websocket.receive_json()
-            # ... handle incoming messages ...
+            data = await websocket.receive()
+            data = json.loads(data["text"])
+            
+            if await sql.pc_exists(ip):
+                await sql.add_pc(ip, data["mac"])
+                
     except WebSocketDisconnect:
         active_connections.remove(websocket)
-        log_info(websocket.client, f"Client disconnected")
+        log_info(websocket.client, "Client disconnected")
     finally:
         if websocket.client_state == 0:  # 0 is CONNECTED state
             await websocket.close()
 
         if active_connections.count(websocket) != 0:
             active_connections.remove(websocket)
-
+            
+@app.get('/startup')
+async def startup(request: Request):
+    s = ''
+    for ip, mac in await sql.read_mac_pc_for_lunch((await request.json())["data"]):
+        send_magic_packet(mac)
+        s += f'Был запущен\: `{ip}`\n'
+        
+    return {
+        "data": s
+    }
+        
 
 @app.post("/update")
 async def update(request: Request):

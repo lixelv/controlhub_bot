@@ -1,4 +1,5 @@
-import aiomysql, asyncio
+import aiomysql
+import asyncio
 from aiogram.types import Message
 
 
@@ -40,9 +41,11 @@ class MySQL:
     
     -- table pc
     CREATE TABLE `pc` (
-      `ip` varchar(255) NOT NULL,
-      `active_command` int DEFAULT NULL,
-      PRIMARY KEY (`ip`)
+        `ip` varchar(255) NOT NULL,
+        `mac` varchar(18) DEFAULT NULL,
+        `active_command` int DEFAULT NULL,
+        PRIMARY KEY (`ip`)
+    )
     );
     """
     """
@@ -91,18 +94,19 @@ class MySQL:
     # region user
 
     async def user_exists(self, user_id: str) -> bool:
-        result = await self.read('SELECT id FROM user WHERE id = ?', (user_id,), one=True)
+        result = await self.read('SELECT id FROM user WHERE id = ?', (user_id,), one=True)  # noqa: E501
         return bool(result is None)
 
     async def new_user(self, user_id: int, username: str) -> None:
         await self.do('INSERT INTO user (id, name) VALUES (?, ?)', (user_id, username))
 
     async def is_admin(self, message: Message) -> bool:
-        result = await self.read('SELECT is_admin FROM user WHERE id = ?', (message.from_user.id,), one=True)
+        result = await self.read('SELECT is_admin FROM user WHERE id = ?', 
+                                 (message.from_user.id,), one=True)
         return not bool(result[0])
 
     async def get_state(self, user_id: int) -> int:
-        result = await self.read('SELECT state FROM user WHERE id = ?', (user_id,), one=True)
+        result = await self.read('SELECT state FROM user WHERE id = ?', (user_id,), one=True)  # noqa: E501
         return result[0] if result else None
 
     async def state_for_args(self, message: Message) -> bool:
@@ -113,53 +117,71 @@ class MySQL:
         await self.do('UPDATE user SET state = ? WHERE id = ?', (state, user_id))
 
     async def get_active_command(self, user_id: int) -> str:
-        result = await self.read('SELECT args FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
+        result = await self.read(
+            'SELECT args FROM command '
+            'WHERE id = (SELECT active_command FROM user WHERE id = ?)',
+                                 (user_id,), one=True)
+        
         return result[0] if result else None
 
     async def get_active_command_name(self, user_id: int) -> str:
-        result = await self.read('SELECT name FROM command WHERE id = (SELECT active_command FROM user WHERE id = ?)', (user_id,), one=True)
+        result = await self.read(
+            'SELECT name FROM command '
+            'WHERE id = (SELECT active_command FROM user WHERE id = ?)',
+                                 (user_id,), one=True)
         return result[0] if result else None
 
     async def add_active_command(self, user_id: int, command_id: int) -> None:
-        await self.do('UPDATE user SET active_command = ? WHERE id = ?', (command_id, user_id))
+        await self.do('UPDATE user SET active_command = ? WHERE id = ?', 
+                      (command_id, user_id))
 
     # endregion
     # region command_bot
 
-    async def add_command(self, user_id: int, command: str, command_name: str, hidden: int = 0) -> None:
-        await self.do('INSERT INTO command (user_id, name, hidden, args) VALUES (?, ?, ?, ?)', (user_id, command_name, hidden, command))
+    async def add_command(self, user_id: int, 
+                          command: str, 
+                          command_name: str, 
+                          hidden: int = 0) -> None:
+        await self.do('INSERT INTO command (user_id, name, hidden, args)'
+                      ' VALUES (?, ?, ?, ?)', 
+                      (user_id, command_name, hidden, command))
 
     async def delete_command(self, command_id: int) -> None:
         await self.do('DELETE FROM command WHERE id = ?', (command_id,))
 
     async def activate_command(self, command_id: int, ip: str) -> None:
         if ip != 'all':
-            await self.do('UPDATE pc SET active_command = ? WHERE ip = ?', (command_id, ip))
+            await self.do('UPDATE pc SET active_command = ? WHERE ip = ?', (command_id, ip))  # noqa: E501
         else:
             await self.do('UPDATE pc SET active_command = ?', (command_id,))
 
     async def deactivate_command(self, command_id=None) -> None:
         if command_id:
-            await self.do('UPDATE pc SET active_command = NULL WHERE id = ?', (command_id,))
+            await self.do('UPDATE pc SET active_command = NULL WHERE id = ?', (command_id,))  # noqa: E501
         else:
             await self.do('UPDATE pc SET active_command = NULL')
 
     async def read_cmd_for_bot(self, user_id: int) -> tuple:
-        return await self.read('SELECT id, name FROM command WHERE user_id = ? AND hidden = 0', (user_id,))
+        return await self.read('SELECT id, name FROM command '
+                               'WHERE user_id = ? AND hidden = 0', 
+                               (user_id,))
 
     async def read_cmd_for_user(self, user_id: int) -> tuple:
-        return await self.read('SELECT id, name FROM command WHERE user_id = ? AND hidden = 1 AND name != "download"', (user_id,))
+        return await self.read(
+            'SELECT id, name FROM command '
+            'WHERE user_id = ? AND hidden = 1 AND name != "download"', 
+                               (user_id,))
 
     async def get_last_command(self, user_id: int) -> int:
-        result = await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)
+        result = await self.read('SELECT id FROM command WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,), one=True)  # noqa: E501
         return result[0] if result else None
 
     async def command_name_from_id(self, command_id: int) -> str:
-        result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)
+        result = await self.read('SELECT name FROM command WHERE id = ?', (command_id,), one=True)  # noqa: E501
         return result[0] if result else None
 
     async def get_cmd_from_id(self, command_id: int) -> str:
-        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)
+        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)  # noqa: E501
         return result[0] if result else None
 
     async def get_pc(self) -> list:
@@ -173,7 +195,7 @@ class MySQL:
         return result
 
     async def get_command(self, command_id: int) -> tuple:
-        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)
+        result = await self.read('SELECT args FROM command WHERE id = ?', (command_id,), one=True)  # noqa: E501
         return result
 
     # endregion
@@ -182,11 +204,22 @@ class MySQL:
         result = await self.read('SELECT ip FROM pc WHERE ip = ?', (ip,), one=True)
         return bool(result is None)
 
-    async def add_pc(self, ip):
-        await self.do('INSERT INTO pc (ip) VALUES (?)', (ip,))
+    async def add_pc(self, ip, mac):
+        await self.do('INSERT INTO pc (ip, mac) VALUES (?, ?)', (ip, mac))
+        
+    async def read_mac_pc_for_bot(self):
+        return await self.read('SELECT mac, ip FROM pc ')
+        
+    async def read_mac_pc_for_lunch(self, ip):
+        if ip == 'all':
+            return await self.read('SELECT ip, mac FROM pc')
+        else:
+            return await self.read('SELECT ip, mac FROM pc WHERE ip = ?', (ip,))
 
     async def api_read(self, ip: str):
-        result = await self.read('SELECT args from command where id = (select active_command from pc where ip = ?)', (ip,), one=True)
+        result = await self.read(
+            'SELECT args from command '
+            'WHERE id = (select active_command from pc where ip = ?)', (ip,), one=True)
 
         result = result[0] if result else None
 
