@@ -39,9 +39,10 @@ def send_update(data: dict):
 def get_websockets():
     return requests.get(link+'ping_websockets').json()["data"]
 
-def get_ips():
-    data = requests.get(link+'ping_ips').json()["data"]
+def get_macs():
+    data = requests.get(link+'ping_macs').json()["data"]
     return [('all', 'all')] + data if data else None
 
 def lunch_pc(ip):
-    return requests.get(f'{link}lunch_pc', json={"data": ip})
+    result = requests.get(f'{link}lunch_pc', json={"data": ip}).json()["data"]
+    return result

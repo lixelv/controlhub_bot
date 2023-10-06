@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from wakeonlan import send_magic_packet
 from asyncio import get_event_loop
 from cnf import create_hidden_folder, store
-from typing import List
+from typing import List, Dict
 from datetime import datetime
 import json
 import logging
@@ -19,7 +19,7 @@ sql = MySQL()
 app = FastAPI()
 
 logging.basicConfig(filename='app.log', level=logging.INFO, encoding='utf-8')
-active_connections: List[WebSocket] = []
+active_connections: Dict[str, WebSocket] = {}
 
 
 def log_error(client, message: str):
@@ -33,60 +33,46 @@ def log_info(client, message: str):
 @app.get("/")
 async def read_root(request: Request):
     ip = request.client.host
-
-    try:
-        if await sql.pc_exists(ip):
-            await sql.add_pc(ip)
-    except Exception as e:
-        log_error(request.client, e)
-
-    content = await sql.api_read(ip)
-    result = {
-        "args": content,
-        "run": False,
-        "sleep": tm - (time() % tm)
-    }
-
-    if content is None:
-        return result
-
-    else:
-        result["run"] = True
-        return result
+    return {"data": {"ip": ip}}
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    active_connections.append(websocket)
-    log_info(websocket.client, "Client connected")
-
-    ip = websocket.client.host
 
     try:
         while True:
             data = await websocket.receive()
             data = json.loads(data["text"])
+            mac = data["mac"]
+
+            active_connections.update({mac: websocket})
+            log_info(websocket.client, "Client connected")
             
-            if await sql.pc_exists(ip):
-                await sql.add_pc(ip, data["mac"])
-                
+            new_pc = await sql.pc_exists(mac)
+
+            if new_pc:
+                await sql.add_pc(mac)
+
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        del active_connections[mac]
         log_info(websocket.client, "Client disconnected")
+
     finally:
         if websocket.client_state == 0:  # 0 is CONNECTED state
             await websocket.close()
 
-        if active_connections.count(websocket) != 0:
-            active_connections.remove(websocket)
+        if active_connections.get(mac) != None:
+            del active_connections[mac]
             
-@app.get('/startup')
+@app.get('/lunch_pc')
 async def startup(request: Request):
     s = ''
-    for ip, mac in await sql.read_mac_pc_for_lunch((await request.json())["data"]):
-        send_magic_packet(mac)
-        s += f'Был запущен\: `{ip}`\n'
+    data = (await request.json())["data"]
+
+    for mac in await sql.read_mac_pc_for_lunch(data):
+        send_magic_packet(mac[0])
+        s += f'Был запущен\: `{mac[0]}`\n'
         
     return {
         "data": s
@@ -95,12 +81,13 @@ async def startup(request: Request):
 
 @app.post("/update")
 async def update(request: Request):
-    for connection in active_connections:
-        ip = connection.client.host
+    for mac, connection in active_connections.items():
         data = (await request.json())["data"]
 
-        if ip in data:
-            content = await sql.api_read(ip)
+        for mac in data:
+            print(mac)
+            content = await sql.api_read(mac)
+            print(content)
             result = {
                 "args": content,
                 "run": False
@@ -110,6 +97,7 @@ async def update(request: Request):
                 pass
             else:
                 result["run"] = True
+                print(result)
                 await connection.send_json(json.dumps(result))
     return "ok"
 
@@ -135,25 +123,26 @@ async def ping_websockets():
         return {
             "data": "\n".join(
                 [
-                    f"*{i + 1} connection\:*\n"
-                    f"host\:  `{active_connections[i].client.host}`\n "
-                    f"port\:  `{active_connections[i].client.port}`\n "
-                    f"state\: `{active_connections[i].client_state}`\n"
-                    for i in range(len(active_connections))
+                    f"*connection\:*\n"
+                    f"mac\: {mac}"
+                    f"host\:  `{active_connections[mac].client.host}`\n "
+                    f"port\:  `{active_connections[mac].client.port}`\n "
+                    f"state\: `{active_connections[mac].client_state}`\n"
+                    for mac in active_connections.keys()
                 ]
             )
         }
     else:
         return {"data": None}
 
-@app.get("/ping_ips")
-async def ping_ips():
+@app.get("/ping_macs")
+async def ping_macs():
     if active_connections:
         return {
             "data": [
-                (active_connections[i].client.host,
-                 f'({i + 1}) {active_connections[i].client.host}')
-                for i in range(len(active_connections))
+                (active_connections[mac].client.host,
+                 f'{mac}')
+                for mac in active_connections.keys()
             ]
         }
     else:

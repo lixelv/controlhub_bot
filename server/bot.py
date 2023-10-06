@@ -65,10 +65,10 @@ async def get_hidden_programs(message: types.Message):
     await message.answer(s, parse_mode='MarkdownV2')
 
 @dp.message_handler(commands=['lp', 'lunch', 'lunch_pc'])
-async def lunch_pc(message: types.Message):
+async def lunch_pc_send_inline(message: types.Message):
     data = await sql.read_mac_pc_for_bot()
     if data:
-        kb = inline(('all', 'all')+data, prefix='lp')
+        kb = inline((('all', 'all'),)+data, prefix='lp')
         await message.answer('Выберете компьютер для запуска:', reply_markup=kb)
     
 
@@ -118,7 +118,7 @@ async def restart(message: types.Message):
     await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
     
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'l')
-async def lunch_pc(callback: types.CallbackQuery):
+async def lunch_pc_inline(callback: types.CallbackQuery):
     s = lunch_pc(callback.data.split('_')[1])
     await callback.message.edit_text(s, parse_mode='MarkdownV2')
 
@@ -131,9 +131,10 @@ async def callback(callback: types.CallbackQuery):
 
     if command.count('@arg') == 0:
 
-        ips = get_ips()
-        if ips:
-            kb = inline(ips, f'f_{command_id}')
+        macs = get_macs()
+        print(macs)
+        if macs:
+            kb = inline(macs, f'f_{command_id}')
 
             await callback.message.edit_text(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
 
@@ -149,13 +150,13 @@ async def callback(callback: types.CallbackQuery):
 async def f_activate(callback: types.CallbackQuery):
     data = callback.data.split('_')
     command_id = int(data[1])
-    ip = data[2]
+    mac = data[2]
 
     command_name = await sql.command_name_from_id(command_id)
 
-    await callback.message.edit_text(f'Команда `{command_name}` запущена на `{ip}`\.', parse_mode='MarkdownV2')
+    await callback.message.edit_text(f'Команда `{command_name}` запущена на `{mac}`\.', parse_mode='MarkdownV2')
 
-    await sql.activate_command(command_id, ip)
+    await sql.activate_command(command_id, mac)
 
     data = await sql.get_active_pc()
 
@@ -192,9 +193,9 @@ async def additional_args(message: types.Message):
     await sql.add_command(message.from_user.id, command_1_st.replace('@arg', message.text), command_name, 1)
     command_id = await sql.get_last_command(message.from_user.id)
 
-    ips = get_ips()
-    if ips:
-        kb = inline(ips, f'f_{command_id}')
+    macs = get_macs()
+    if macs:
+        kb = inline(macs, f'f_{command_id}')
 
         await message.answer(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
 

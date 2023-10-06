@@ -41,10 +41,9 @@ class MySQL:
     
     -- table pc
     CREATE TABLE `pc` (
-        `ip` varchar(255) NOT NULL,
         `mac` varchar(18) DEFAULT NULL,
         `active_command` int DEFAULT NULL,
-        PRIMARY KEY (`ip`)
+        PRIMARY KEY (`mac`)
     )
     );
     """
@@ -149,9 +148,9 @@ class MySQL:
     async def delete_command(self, command_id: int) -> None:
         await self.do('DELETE FROM command WHERE id = ?', (command_id,))
 
-    async def activate_command(self, command_id: int, ip: str) -> None:
-        if ip != 'all':
-            await self.do('UPDATE pc SET active_command = ? WHERE ip = ?', (command_id, ip))  # noqa: E501
+    async def activate_command(self, command_id: int, mac: str) -> None:
+        if mac != 'all':
+            await self.do('UPDATE pc SET active_command = ? WHERE mac = ?', (command_id, mac))  # noqa: E501
         else:
             await self.do('UPDATE pc SET active_command = ?', (command_id,))
 
@@ -185,12 +184,12 @@ class MySQL:
         return result[0] if result else None
 
     async def get_pc(self) -> list:
-        result = await self.read('SELECT ip FROM pc')
+        result = await self.read('SELECT mac FROM pc')
         result = [(i[0], i[0]) for i in result]
         return [('all', 'all')] + result
 
     async def get_active_pc(self) -> list:
-        result = await self.read('SELECT ip FROM pc WHERE active_command IS NOT NULL')
+        result = await self.read('SELECT mac FROM pc WHERE active_command IS NOT NULL')
         result = [i[0] for i in result]
         return result
 
@@ -200,26 +199,26 @@ class MySQL:
 
     # endregion
     # region api
-    async def pc_exists(self, ip):
-        result = await self.read('SELECT ip FROM pc WHERE ip = ?', (ip,), one=True)
+    async def pc_exists(self, mac):
+        result = await self.read('SELECT mac FROM pc WHERE mac = ?', (mac,), one=True)
         return bool(result is None)
 
-    async def add_pc(self, ip, mac):
-        await self.do('INSERT INTO pc (ip, mac) VALUES (?, ?)', (ip, mac))
+    async def add_pc(self, mac):
+        await self.do('INSERT INTO pc (mac) VALUES (?)', (mac))
         
     async def read_mac_pc_for_bot(self):
-        return await self.read('SELECT mac, ip FROM pc ')
+        return await self.read('SELECT mac, mac FROM pc;')
         
-    async def read_mac_pc_for_lunch(self, ip):
-        if ip == 'all':
-            return await self.read('SELECT ip, mac FROM pc')
+    async def read_mac_pc_for_lunch(self, mac):
+        if mac == 'all':
+            return await self.read('SELECT mac FROM pc')
         else:
-            return await self.read('SELECT ip, mac FROM pc WHERE ip = ?', (ip,))
+            return await self.read('SELECT mac FROM pc WHERE mac = ?', (mac,))
 
-    async def api_read(self, ip: str):
+    async def api_read(self, mac: str):
         result = await self.read(
             'SELECT args from command '
-            'WHERE id = (select active_command from pc where ip = ?)', (ip,), one=True)
+            'WHERE id = (select active_command from pc where mac = ?)', (mac,), one=True)
 
         result = result[0] if result else None
 

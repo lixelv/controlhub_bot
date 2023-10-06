@@ -1,1 +1,1 @@
-import compil
+[print(i, c) for i, c in zip({1:2, 3:4, 5:6})]
