@@ -39,20 +39,28 @@ async def read_root(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    mac = None
 
     try:
         while True:
             data = await websocket.receive()
-            data = json.loads(data["text"])
-            mac = data["mac"]
+            print(data)
+            if data.get('text') != None:
+                data = json.loads(data["text"])
 
-            active_connections.update({mac: websocket})
-            log_info(websocket.client, "Client connected")
+                mac = data["mac"]
+
+                active_connections.update({mac: websocket})
+                log_info(websocket.client, "Client connected")
+                
+                new_pc = await sql.pc_exists(mac)
+
+                if new_pc:
+                    await sql.add_pc(mac)
             
-            new_pc = await sql.pc_exists(mac)
+            else:
+                pass
 
-            if new_pc:
-                await sql.add_pc(mac)
 
     except WebSocketDisconnect:
         del active_connections[mac]
