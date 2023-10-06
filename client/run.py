@@ -20,6 +20,8 @@ async def listen_server(uri):
 
                     data = json.loads(data)
 
+                    print(data)
+
                     if data.get("run"):
                         print(data["args"])
                         thread = threading.Thread(target=comppile, args=(data["args"],))
