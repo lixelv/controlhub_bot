@@ -100,7 +100,7 @@ async def update(request: Request):
             else:
                 result["run"] = True
                 print(result)
-                await active_connections["mac"].send_json(json.dumps(result))
+                await active_connections[mac].send_json(json.dumps(result))
     return "ok"
 
 @app.get('/get_cmd')
