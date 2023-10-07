@@ -99,8 +99,10 @@ async def update(request: Request):
                 pass
             else:
                 result["run"] = True
-                print(result)
-                await active_connections[mac].send_json(json.dumps(result))
+                if mac in active_connections.keys():
+                    print(123)
+                    websocket = active_connections[mac]
+                    await websocket.send_json(json.dumps(result))
     return "ok"
 
 @app.get('/get_cmd')
