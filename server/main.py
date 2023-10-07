@@ -39,7 +39,7 @@ async def read_root(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    mac = None
+    mac = ''
 
     try:
         while True:
@@ -65,6 +65,9 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         del active_connections[mac]
         log_info(websocket.client, "Client disconnected")
+        
+    except Exception as e:
+        log_info(websocket.client, str(e))
 
     finally:
         if websocket.client_state == 0:  # 0 is CONNECTED state
