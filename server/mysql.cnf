@@ -1,6 +1,0 @@
-[client]
-host = localhost
-user = lison
-password = Se89700
-port = 3306
-database = api-server-for-school
