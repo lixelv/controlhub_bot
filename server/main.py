@@ -156,6 +156,9 @@ async def ping_macs(request: Request):
     else:
         return {"data": None}
 
+@app.get('/check')
+async def check_websockets():
+    return {"data": active_connections}  # active_connections
 
 @app.post("/success", status_code=status.HTTP_204_NO_CONTENT)
 async def client_success(request: Request, task: dict):
