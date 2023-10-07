@@ -126,9 +126,9 @@ async def ping_websockets():
             "data": "\n".join(
                 [
                     f"*connection\:*\n"
-                    f"mac\: {mac}"
-                    f"host\:  `{active_connections[mac].client.host}`\n "
-                    f"port\:  `{active_connections[mac].client.port}`\n "
+                    f"mac\: {mac}\n"
+                    f"host\:  `{active_connections[mac].client.host}`\n"
+                    f"port\:  `{active_connections[mac].client.port}`\n"
                     f"state\: `{active_connections[mac].client_state}`\n"
                     for mac in active_connections.keys()
                 ]
