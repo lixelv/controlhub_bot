@@ -99,6 +99,7 @@ async def update(request: Request):
                 pass
             else:
                 result["run"] = True
+                print(mac, active_connections.keys())
                 if mac in list(active_connections.keys()):
                     print(123)
                     websocket = active_connections[mac]
