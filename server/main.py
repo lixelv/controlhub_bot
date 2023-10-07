@@ -86,7 +86,8 @@ async def update(request: Request):
             send_magic_packet(mac[0].replace(':', '-').upper())
     else:       
         for mac in await sql.read_mac_pc_for_lunch(data.get("mac")):
-            print(mac)
+            mac = mac[0]
+            
             content = await sql.api_read(mac)
             print(content)
             
@@ -97,13 +98,12 @@ async def update(request: Request):
             }
             if content is None:
                 pass
+            
             else:
                 result["run"] = True
-                print(mac, active_connections.keys())
-                if mac in list(active_connections.keys()):
-                    print(123)
-                    websocket = active_connections[mac]
-                    await websocket.send_json(json.dumps(result))
+                print(123)
+                websocket = active_connections[mac]
+                await websocket.send_json(json.dumps(result))
     return "ok"
 
 @app.get('/get_cmd')
