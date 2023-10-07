@@ -33,16 +33,18 @@ def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
 
     return kb
 
-def send_update(data: dict):
-    requests.post(link+'update', json=data)
+def send_update(mac, startup = False):
+    json_data = {"data": startup, "mac": mac}
+    requests.post(link+'update', json=json_data)
 
 def get_websockets():
     return requests.get(link+'ping_websockets').json()["data"]
 
-def get_macs():
-    data = requests.get(link+'ping_macs').json()["data"]
+def get_macs(startup = False):
+    if startup:
+        json_data = {"data": "startup"}
+    else:
+        json_data = {"data": None}
+        
+    data = requests.get(link+'ping_macs', json=json_data).json()["data"]
     return [('all', 'all')] + data if data else None
-
-def lunch_pc(ip):
-    result = requests.get(f'{link}lunch_pc', json={"data": ip}).json()["data"]
-    return result

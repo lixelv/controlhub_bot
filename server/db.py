@@ -21,7 +21,7 @@ class MySQL:
     
     -- table user
     CREATE TABLE `user` (
-      `id` int NOT NULL,
+      `id` bigint NOT NULL,
       `name` varchar(255) DEFAULT NULL,
       `is_admin` tinyint DEFAULT '0',
       `state` int NOT NULL DEFAULT '0',
@@ -32,7 +32,7 @@ class MySQL:
     -- table command
     CREATE TABLE `command` (
       `id` int NOT NULL AUTO_INCREMENT,
-      `user_id` int DEFAULT NULL,
+      `user_id` bigint DEFAULT NULL,
       `name` varchar(255) DEFAULT NULL,
       `args` text,
       `hidden` tinyint DEFAULT '0',
@@ -41,10 +41,9 @@ class MySQL:
     
     -- table pc
     CREATE TABLE `pc` (
-        `mac` varchar(18) DEFAULT NULL,
+        `mac` varchar(18) NOT NULL,
         `active_command` int DEFAULT NULL,
         PRIMARY KEY (`mac`)
-    )
     );
     """
     """
@@ -150,9 +149,13 @@ class MySQL:
 
     async def activate_command(self, command_id: int, mac: str) -> None:
         if mac != 'all':
+            print(command_id, mac)
             await self.do('UPDATE pc SET active_command = ? WHERE mac = ?', (command_id, mac))  # noqa: E501
+            print(await self.read('SELECT active_command FROM pc'))
         else:
+            print(command_id, mac)
             await self.do('UPDATE pc SET active_command = ?', (command_id,))
+            print(await self.read('SELECT active_command FROM pc WHERE mac = ?', (mac,)))
 
     async def deactivate_command(self, command_id=None) -> None:
         if command_id:

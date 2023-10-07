@@ -72,41 +72,32 @@ async def websocket_endpoint(websocket: WebSocket):
 
         if active_connections.get(mac) != None:
             del active_connections[mac]
-            
-@app.get('/lunch_pc')
-async def startup(request: Request):
-    s = ''
-    data = (await request.json())["data"]
-
-    for mac in await sql.read_mac_pc_for_lunch(data):
-        send_magic_packet(mac[0])
-        s += f'Был запущен\: `{mac[0]}`\n'
-        
-    return {
-        "data": s
-    }
         
 
 @app.post("/update")
 async def update(request: Request):
-    for mac, connection in active_connections.items():
-        data = (await request.json())["data"]
-
-        for mac in data:
+    data = await request.json()
+    if data.get("data"):
+        for mac in await sql.read_mac_pc_for_lunch(data.get("mac")):
+            print(f"Запущен: {mac[0].replace(':', '-').upper()}")
+            send_magic_packet(mac[0].replace(':', '-').upper())
+    else:       
+        for mac in await sql.read_mac_pc_for_lunch(data.get("mac")):
             print(mac)
             content = await sql.api_read(mac)
             print(content)
+            
+        
             result = {
                 "args": content,
                 "run": False
             }
-
             if content is None:
                 pass
             else:
                 result["run"] = True
                 print(result)
-                await connection.send_json(json.dumps(result))
+                await active_connections["mac"].send_json(json.dumps(result))
     return "ok"
 
 @app.get('/get_cmd')
@@ -144,13 +135,19 @@ async def ping_websockets():
         return {"data": None}
 
 @app.get("/ping_macs")
-async def ping_macs():
-    if active_connections:
+async def ping_macs(request: Request):
+    request_data = (await request.json()).get("data")
+    if request_data == "startup":
         return {
             "data": [
-                (active_connections[mac].client.host,
-                 f'{mac}')
-                for mac in active_connections.keys()
+                (mac[0], mac[0]) for mac in await sql.read_mac_pc_for_lunch('all')
+            ]
+        }
+    
+    elif active_connections:
+        return {
+            "data": [
+                (mac, mac) for mac in active_connections.keys()
             ]
         }
     else:

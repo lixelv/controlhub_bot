@@ -63,13 +63,6 @@ async def get_hidden_programs(message: types.Message):
     for el in data:
         s += f'*id\:* `{el[0]}`, *name\:* `{el[1]}`\n'
     await message.answer(s, parse_mode='MarkdownV2')
-
-@dp.message_handler(commands=['lp', 'lunch', 'lunch_pc'])
-async def lunch_pc_send_inline(message: types.Message):
-    data = await sql.read_mac_pc_for_bot()
-    if data:
-        kb = inline((('all', 'all'),)+data, prefix='lp')
-        await message.answer('Выберете компьютер для запуска:', reply_markup=kb)
     
 
 @dp.message_handler(commands=['p', 'prog', 'program', 'hp', 'hid_prog', 'hidden_program'])
@@ -116,22 +109,17 @@ async def delete(message: types.Message):
 async def restart(message: types.Message):
     kb = inline(await sql.read_cmd_for_user(message.from_user.id), prefix='dh')
     await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
-    
-@dp.callback_query_handler(lambda callback: callback.data[0] == 'l')
-async def lunch_pc_inline(callback: types.CallbackQuery):
-    s = lunch_pc(callback.data.split('_')[1])
-    await callback.message.edit_text(s, parse_mode='MarkdownV2')
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):
+    print(callback.data)
     command_id = int(callback.data.split('_')[1])
     command_name = await sql.command_name_from_id(command_id)
     command = await sql.get_command(command_id)
     command = command[0]
 
     if command.count('@arg') == 0:
-
-        macs = get_macs()
+        macs = get_macs(startup=(command == "startup"))
         print(macs)
         if macs:
             kb = inline(macs, f'f_{command_id}')
@@ -158,9 +146,7 @@ async def f_activate(callback: types.CallbackQuery):
 
     await sql.activate_command(command_id, mac)
 
-    data = await sql.get_active_pc()
-
-    send_update({"data": data})
+    send_update(startup=((await sql.get_cmd_from_id(command_id)) == 'startup'), mac=mac)
     await asyncio.sleep(1)
 
     await sql.deactivate_command()
@@ -225,7 +211,7 @@ async def handle_docs(message: types.Message):
 
     data = await sql.get_active_pc()
 
-    send_update({"data": data})
+    send_update(startup=False, mac='all')
     await asyncio.sleep(1)
 
     await sql.delete_command(command_id)
