@@ -1,5 +1,6 @@
 import asyncio
 from aiogram import types
+from time import sleep
 from bot_cnf import *
 
 create_hidden_folder(store)
@@ -220,4 +221,14 @@ async def handle_docs(message: types.Message):
 
 
 if __name__ == '__main__':
-    aiogram.executor.start_polling(dp, skip_updates=True, loop=loop, on_shutdown=shutdown)
+    while True:
+        try:
+            aiogram.executor.start_polling(dp, skip_updates=True, loop=loop, on_shutdown=shutdown)
+            
+        except KeyboardInterrupt:
+            print("Выход...")
+            break
+        
+        except Exception as e:
+            print(e)
+            sleep(240)
