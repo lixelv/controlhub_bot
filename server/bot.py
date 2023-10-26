@@ -51,7 +51,7 @@ async def get_cnf(message: types.Message):
             cmd_1 = '/p'
             if hidden:
                 cmd_1 = '/hp'
-            f.write(f"{cmd_1} {cmd} @.@ {name}\n----------")
+            f.write(f"{cmd_1} {cmd} @.@ {name}\n\n----------\n\n")
             
     with open('cof_from_bot.txt', 'rb') as f:
         await message.answer_document(document=f)
