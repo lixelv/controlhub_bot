@@ -140,7 +140,7 @@ async def restart(message: types.Message):
 async def do(message: types.Message):
     await sql.set_state(message.from_user.id, 0)
 
-    await sql.add_command(message.from_user.id, message.get_args(), do, 1)
+    await sql.add_command(message.from_user.id, message.get_args(), "do", 1)
     command_id = await sql.get_last_command(message.from_user.id)
 
     macs = get_macs()
