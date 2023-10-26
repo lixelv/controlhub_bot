@@ -1,4 +1,6 @@
 import aiogram
+import requests
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from db import MySQL
 from cnf import *
