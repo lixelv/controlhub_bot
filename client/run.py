@@ -23,7 +23,6 @@ async def listen_server(uri):
                     print(data)
 
                     if data.get("run"):
-                        print(data["args"])
                         thread = threading.Thread(target=compile, args=(data["args"],))
                         thread.start()
         except Exception as e:
