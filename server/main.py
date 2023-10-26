@@ -85,7 +85,7 @@ async def update(request: Request):
             print(f"Запущен: {mac[0].replace(':', '-').upper()}")
             send_magic_packet(mac[0].replace(':', '-').upper())
     else:       
-        for mac in await sql.read_mac_pc_for_lunch(data.get("mac")):
+        for mac in active_connections.keys():
             mac = mac[0]
             
             content = await sql.api_read(mac)
