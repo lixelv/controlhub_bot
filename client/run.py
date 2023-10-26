@@ -15,7 +15,7 @@ async def listen_server(uri):
             async with websockets.connect(uri) as websocket:
                 await websocket.send(json.dumps({
                     "mac": get_mac_address()
-                }))
+                  }))
                 while True:
                     data = json.loads(await websocket.recv())
 

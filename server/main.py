@@ -80,6 +80,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.post("/update")
 async def update(request: Request):
     data = await request.json()
+    print(active_connections)
     if data.get("data"):
         for mac in await sql.read_mac_pc_for_lunch(data.get("mac")):
             print(f"Запущен: {mac[0].replace(':', '-').upper()}")
