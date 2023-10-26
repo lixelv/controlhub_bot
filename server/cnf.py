@@ -1,5 +1,4 @@
 from envparse import env
-import requests
 import os
 import ctypes
 

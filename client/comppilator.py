@@ -1,6 +1,6 @@
 import subprocess
 import pyautogui
-from scripts import *
+from cnf import *
 from time import sleep
 from pynput.keyboard import Controller
 

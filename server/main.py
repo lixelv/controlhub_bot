@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from wakeonlan import send_magic_packet
 from asyncio import get_event_loop
 from cnf import create_hidden_folder, store
-from typing import List, Dict
+from typing import Dict
 from datetime import datetime
 import json
 import logging
@@ -45,7 +45,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive()
             print(data)
-            if data.get('text') != None:
+            if data.get('text') is not None:
                 data = json.loads(data["text"])
 
                 mac = data["mac"]
@@ -73,7 +73,7 @@ async def websocket_endpoint(websocket: WebSocket):
         if websocket.client_state == 0:  # 0 is CONNECTED state
             await websocket.close()
 
-        if active_connections.get(mac) != None:
+        if active_connections.get(mac) is not None:
             del active_connections[mac]
         
 
@@ -89,19 +89,17 @@ async def update(request: Request):
         for mac in active_connections.keys() if data.get('mac') == 'all' else [data.get('mac')]:
             
             content = await sql.api_read(mac)
-            print(content, mac)
             
         
             result = {
                 "args": content,
                 "run": False
             }
-            if content is None:
+            if content is None or mac not in active_connections.keys():
                 pass
             
             else:
                 result["run"] = True
-                print(123)
                 websocket = active_connections[mac]
                 await websocket.send_json(json.dumps(result))
     return "ok"
