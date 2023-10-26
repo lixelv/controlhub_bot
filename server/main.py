@@ -86,8 +86,8 @@ async def update(request: Request):
             print(f"Запущен: {mac[0].replace(':', '-').upper()}")
             send_magic_packet(mac[0].replace(':', '-').upper())
     else:       
-        for mac in active_connections.keys():
-            mac = mac[0]
+        for mac in active_connections.keys() if data.get('mac') == 'all' else active_connections[data.get('mac')]:
+            mac = mac
             
             content = await sql.api_read(mac)
             print(content)
