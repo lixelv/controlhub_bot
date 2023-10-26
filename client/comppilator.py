@@ -6,7 +6,7 @@ from pynput.keyboard import Controller
 
 keyboard = Controller()
 
-def comppile(s: str):
+def compile(s: str):
     try:
         # разделяем запрос по символам ` & `
         s = split(s, ' & ')
@@ -52,12 +52,12 @@ def comppile(s: str):
                         sleep(float(val[1].replace(',', '.')))
 
                     # для запуска чего-то специфичного
-                    elif val[0] == 'eval':
-                        eval(', '.join(val[1:]))
+                    elif val[0] == 'exec':
+                        exec(', '.join(val[1:]))
 
                     elif val[0][0] == '@':
                         data = get_data(val[0].replace('@', ''))
-                        comppile(data)
+                        compile(data)
 
 
                     # при использовании Popen

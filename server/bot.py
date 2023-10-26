@@ -210,7 +210,7 @@ async def handle_docs(message: types.Message):
     with open(file_path, 'wb') as file:
         await bot.download_file(file_info.file_path, destination=file)
 
-    await sql.add_command(message.from_user.id, f'download, /link/{document.file_name}', f'download', hidden=1)
+    await sql.add_command(message.from_user.id, f'download, /link/{document.file_name}', f'download {document.file_name}', hidden=1)
 
     command_id = await sql.get_last_command(message.from_user.id)
 
