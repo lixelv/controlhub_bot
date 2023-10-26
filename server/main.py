@@ -87,10 +87,9 @@ async def update(request: Request):
             send_magic_packet(mac[0].replace(':', '-').upper())
     else:       
         for mac in active_connections.keys() if data.get('mac') == 'all' else [active_connections[data.get('mac')]]:
-            mac = mac
             
             content = await sql.api_read(mac)
-            print(content)
+            print(content, mac)
             
         
             result = {
