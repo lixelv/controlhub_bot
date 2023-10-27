@@ -3,14 +3,14 @@ import aiogram
 
 from aiogram import types
 from time import sleep
-from bot_cnf import *
+from bot_cnf import *  # noqa: F403
 import signal
 import os
 
 def signal_handler(sig, frame):
     print("Выход...")
     os.kill(os.getpid(), signal.SIGTERM)
-    
+
 create_hidden_folder(store)
 loop = asyncio.get_event_loop()
 
