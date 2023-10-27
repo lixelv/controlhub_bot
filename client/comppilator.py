@@ -1,6 +1,8 @@
 import subprocess
 import pyautogui
-from cnf import *
+import os
+
+from cnf import link, store, split, download_file, get_data, send_success, send_error
 from time import sleep
 from pynput.keyboard import Controller
 

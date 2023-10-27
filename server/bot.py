@@ -3,7 +3,9 @@ import aiogram
 
 from aiogram import types
 from time import sleep
-from bot_cnf import *  # noqa: F403
+from cnf import store, create_hidden_folder
+from db import MySQL
+from bot_cnf import dp, bot, start_, help_, inline, send_update, get_macs, get_websockets # noqa: F403
 import signal
 import os
 
@@ -162,7 +164,7 @@ async def do(message: types.Message):
 
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
-async def callback(callback: types.CallbackQuery):
+async def activate_callback(callback: types.CallbackQuery):
     command_id = int(callback.data.split('_')[1])
     command_name = await sql.command_name_from_id(command_id)
     command = await sql.get_command(command_id)
@@ -203,7 +205,7 @@ async def f_activate(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'd')
-async def callback(callback: types.CallbackQuery):
+async def delete_callback(callback: types.CallbackQuery):
     command_id = int(callback.data.split('_')[1])
     command_name = await sql.command_name_from_id(command_id)
 
@@ -260,9 +262,7 @@ async def handle_docs(message: types.Message):
     command_id = await sql.get_last_command(message.from_user.id)
 
     await sql.activate_command(command_id, 'all')
-
-    data = await sql.get_active_pc()
-
+    
     send_update(startup=False, mac='all')
     await asyncio.sleep(1)
 

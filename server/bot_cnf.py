@@ -2,14 +2,11 @@ import aiogram
 import requests
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from db import MySQL
-from cnf import *
+from cnf import env, link
 
 # db_url = f'mysql://{env("USER_")}:{env("PASSWORD_")}@{env("HOST_")}:{env("PORT_")}/{env("DB_")}?allowPublicKeyRetrieval=true'
 
 token = env('TELEGRAM')
-
-spec_cmd = env('SPEC_CMD')
 
 start_ = 'Привет, я бот созданный чтобы управлять \nкомпьютерами в *40 кабинете школы №358*\. \n\nЧтобы ознакомится с моим функционалом введите */help*'
 
@@ -33,7 +30,7 @@ def inline(lst: list | tuple, prefix) -> InlineKeyboardMarkup:
         buttons.append(InlineKeyboardButton('\u200B', callback_data='@none'))
 
     kb.add(*buttons)
-    kb.add(InlineKeyboardButton('Закрыть ❌', callback_data=f'close'))
+    kb.add(InlineKeyboardButton('Закрыть ❌', callback_data='close'))
 
     return kb
 

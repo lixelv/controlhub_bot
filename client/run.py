@@ -2,8 +2,10 @@ import json
 import websockets
 import asyncio
 import threading
+
 from getmac import get_mac_address
-from comppilator import *  # noqa: F403
+from cnf import link, store, create_hidden_folder
+from comppilator import compile
 
 create_hidden_folder(store)
 
@@ -27,7 +29,7 @@ async def listen_server(uri):
                         thread.start()
         except Exception as e:
             print(e)
-            sleep(10)
+            await asyncio.sleep(10)
 
 if __name__ == '__main__':
     asyncio.run(listen_server(f'{link.replace("http", "ws")}ws'))
