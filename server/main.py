@@ -1,14 +1,15 @@
-from db import MySQL
-from time import time
-from fastapi import FastAPI, Request, status, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
-from wakeonlan import send_magic_packet
-from asyncio import get_event_loop
-from cnf import create_hidden_folder, store
-from typing import Dict
-from datetime import datetime
 import json
 import logging
+
+from fastapi import FastAPI, Request, status, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+from cnf import create_hidden_folder, store
+from wakeonlan import send_magic_packet
+from asyncio import get_event_loop
+from datetime import datetime
+from typing import Dict
+from time import time
+from db import MySQL
 
 create_hidden_folder(store)
 
@@ -103,11 +104,6 @@ async def update(request: Request):
                 websocket = active_connections[mac]
                 await websocket.send_json(json.dumps(result))
     return "ok"
-
-@app.get('/get_cmd')
-async def get_cmd(request: Request, id: int):
-    content = await sql.get_cmd_from_id(id)
-    return {"data": content}
 
 @app.get("/sleep")
 async def sleep_timing():

