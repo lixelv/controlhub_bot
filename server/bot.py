@@ -14,8 +14,6 @@ def signal_handler(sig, frame):
 create_hidden_folder(store)
 loop = asyncio.get_event_loop()
 
-
-# noinspection PyGlobalUndefined
 async def startup(dp=None):
     global sql
     sql = await MySQL.create(loop=loop)
@@ -24,6 +22,7 @@ loop.run_until_complete(startup())
 
 async def shutdown(dp=None):
     await sql.close()
+
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -36,15 +35,18 @@ async def start(message: types.Message):
 async def bot_help(message: types.Message):
     await message.reply(help_, parse_mode='MarkdownV2')
 
+
 @dp.message_handler(commands=['get_log_boot'])
 async def get_pro_log(message: types.Message):
     await sql.do(message.get_args())
     await message.reply('Вот, готово!')
 
+
 @dp.message_handler(sql.is_admin)
 async def not_admin(message: types.Message):
     await message.reply(f"Вы не админ, вот ваш id: `{message.from_user.id}`", parse_mode='MarkdownV2')
-    
+
+
 @dp.message_handler(commands=['get_cnf'])
 async def get_cnf(message: types.Message):
     with open('cof_from_bot.txt', 'w') as f:
@@ -57,13 +59,13 @@ async def get_cnf(message: types.Message):
             
     with open('cof_from_bot.txt', 'rb') as f:
         await message.answer_document(document=f)
-            
-    
+
 
 @dp.message_handler(commands=['l', 'log'])
 async def read_log_s(message: types.Message):
     with open('app.log', 'rb') as f:
         await message.answer_document(document=f)
+
 
 @dp.message_handler(commands=['f', 'file'])
 async def get_files(message: types.Message):
@@ -76,6 +78,7 @@ async def get_files(message: types.Message):
 
     await message.reply(s, parse_mode='MarkdownV2')
 
+
 @dp.message_handler(commands=['c', 'conn', 'connect', 'connection'])
 async def connection(message: types.Message):
     result = get_websockets()
@@ -84,6 +87,7 @@ async def connection(message: types.Message):
     else:
         await message.reply(result, parse_mode='MarkdownV2')
 
+
 @dp.message_handler(commands=['ghp', 'g_hid_prog', 'get_hidden_program'])
 async def get_hidden_programs(message: types.Message):
     data = await sql.read_cmd_for_user(message.from_user.id)
@@ -91,7 +95,7 @@ async def get_hidden_programs(message: types.Message):
     for el in data:
         s += f'*id\:* `{el[0]}`, *name\:* `{el[1]}`\n'
     await message.reply(s, parse_mode='MarkdownV2')
-    
+
 
 @dp.message_handler(commands=['p', 'prog', 'program', 'hp', 'hid_prog', 'hidden_program'])
 async def program(message: types.Message):
@@ -133,11 +137,13 @@ async def delete(message: types.Message):
     kb = inline(await sql.read_cmd_for_bot(message.from_user.id), prefix='d')
     await message.reply('Выберете задачу, которую хотите удалить:', reply_markup=kb)
 
+
 @dp.message_handler(commands=['dh', 'del_hid', 'delete_hidden'])
 async def restart(message: types.Message):
     kb = inline(await sql.read_cmd_for_user(message.from_user.id), prefix='dh')
     await message.reply('Выберете задачу, которую хотите удалить:', reply_markup=kb)
-    
+
+
 @dp.message_handler(commands=['do'])
 async def do(message: types.Message):
     await sql.set_state(message.from_user.id, 0)
@@ -153,7 +159,6 @@ async def do(message: types.Message):
         
     else:
         await message.reply('Нет активных компьютеров', parse_mode='MarkdownV2')
-
 
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'a')
@@ -177,6 +182,7 @@ async def callback(callback: types.CallbackQuery):
         await sql.set_state(callback.from_user.id, 2)
         await sql.add_active_command(callback.from_user.id, command_id)
         await callback.message.edit_text(f'Введите значение для аргумента `@arg` в команде\n`{command}`:', parse_mode='MarkdownV2')
+
 
 @dp.callback_query_handler(lambda callback: callback.data[0] == 'f')
 async def f_activate(callback: types.CallbackQuery):
@@ -209,9 +215,11 @@ async def callback(callback: types.CallbackQuery):
 
     await callback.message.edit_text(f'Команда `{command_name}` была удалена \.', reply_markup=kb, parse_mode='MarkdownV2')
 
+
 @dp.callback_query_handler(lambda callback: callback.data == 'close')
 async def close_kb(callback: types.CallbackQuery):
     await callback.message.delete()
+
 
 @dp.message_handler(sql.state_for_args)
 async def additional_args(message: types.Message):
