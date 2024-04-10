@@ -47,9 +47,6 @@
 # window.close()
 
 #print("РАЗРАБОТКА TELEGRAM БОТА НА PYTHON ДЛЯ ОДНОВРЕМЕННОГО УПРАВЛЕНИЯ МНОЖЕСТВОМ КОМПЬЮТЕРОВ С ПОМОЩЬЮ ИНТУИТИВНО ПОНЯТНЫХ ЭЛЕМЕНТОВ УПРАВЛЕНИЯ".lower())
-s = 'Hello, world!'
-for i in range(len(s)):
-    if s[i] > s[i+1]:
-        print(s[i+1], end='')
-    else:
-        print(s[i], end='')
+from cnf import get_data
+
+print(get_data(151))

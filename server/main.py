@@ -157,6 +157,10 @@ async def ping_macs(request: Request):
 async def check_websockets():
     return {"data": {mac: websocket.client.host for mac, websocket in active_connections.items()}}  # active_connections
 
+@app.get('/get_cmd?id={id}')
+async def get_cmd(id: int):
+    return {"data": await sql.get_cmd(id)}
+
 @app.post("/success", status_code=status.HTTP_204_NO_CONTENT)
 async def client_success(request: Request, task: dict):
     log_info(request.client, task["task"])

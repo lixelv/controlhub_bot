@@ -3,8 +3,6 @@ import os
 import ctypes
 import requests
 
-
-
 def split(s: str, c: str) -> list:
     if s.count(c) != 0:
         return s.split(c)
@@ -48,6 +46,7 @@ def create_hidden_folder(path: str):
         os.makedirs(path)
         # Установить атрибут скрытой папки
         ctypes.windll.kernel32.SetFileAttributesW(path, 2)
+
 
 # Получить путь к директории, в которой находится скрипт
 script_dir = os.path.dirname(os.path.abspath(__file__))
