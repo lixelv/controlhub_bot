@@ -159,7 +159,7 @@ async def check_websockets():
 
 @app.get('/get_cmd')
 async def get_cmd(id: int):
-    return {"data": await sql.get_cmd(id)}
+    return {"data": await sql.get_cmd_from_id(id)}
 
 @app.post("/success", status_code=status.HTTP_204_NO_CONTENT)
 async def client_success(request: Request, task: dict):
