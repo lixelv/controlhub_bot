@@ -157,7 +157,7 @@ async def ping_macs(request: Request):
 async def check_websockets():
     return {"data": {mac: websocket.client.host for mac, websocket in active_connections.items()}}  # active_connections
 
-@app.get('/get_cmd?id={id}')
+@app.get('/get_cmd')
 async def get_cmd(id: int):
     return {"data": await sql.get_cmd(id)}
 
