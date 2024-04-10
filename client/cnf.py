@@ -51,7 +51,7 @@ def create_hidden_folder(path: str):
 
 # Получить путь к директории, в которой находится скрипт
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
+region = 0
 # Сформировать полный путь к файлу .env
 env_path = os.path.join(script_dir, '.env')
 
@@ -59,5 +59,3 @@ env.read_envfile(env_path)
 
 link = env('LINK')
 store = os.path.join(script_dir, 'data')
-
-

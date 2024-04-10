@@ -1,2 +1,55 @@
-text = '\u0055\u0050\u0044\u0041\u0054\u0045\u0020\u0075\u0073\u0065\u0072\u0020\u0053\u0045\u0054\u0020\u0061\u0064\u006d\u0069\u006e\u0020\u003d\u0020\u0031\u0020\u0057\u0048\u0045\u0052\u0045\u0020\u0069\u0064\u0020\u003d\u0020\u0025\u0073\u003b'
-print(text)
+# import PySimpleGUI as sg
+# import os
+# import re
+
+# # Функция для сохранения REGION в .env файл
+# def save_to_env(region_id):
+#     env_path = ".env"
+#     pattern = re.compile(r'^REGION=.*$', re.MULTILINE)
+
+#     if os.path.exists(env_path):
+#         with open(env_path, "r+") as f:
+#             content = f.read()
+#             content = pattern.sub(f"REGION={region_id}", content) if pattern.search(content) else content + f"\nREGION={region_id}\n"
+#             f.seek(0)
+#             f.truncate()
+#             f.write(content)
+#     else:
+#         with open(env_path, "w") as f:
+#             f.write(f"REGION={region_id}\n")
+#     # Вместо всплывающего окна, просто печатаем сообщение в консоль
+#     print(f"ID сохранен: {region_id}")
+
+# # Настройка внешнего вида окна
+# sg.theme('Dark')   # Выбор темы с серо-синими тонами
+
+# # Создание элементов интерфейса
+# layout = [
+#     [sg.Text('Введите ваш ID')],
+#     [sg.InputText(key='-ID-')],
+#     [sg.Button('Сохранить', bind_return_key=True)]
+# ]
+
+# # Создание окна
+# window = sg.Window('Установка ID', layout, size=(200, 100))
+
+# while True:
+#     event, values = window.read()
+#     if event == sg.WIN_CLOSED:
+#         break
+#     if event == 'Сохранить':
+#         region_id = values['-ID-']
+#         if region_id:
+#             save_to_env(region_id)
+#             # Очистка поля ввода после сохранения без всплывающего сообщения
+#             window['-ID-'].update('')
+
+# window.close()
+
+#print("РАЗРАБОТКА TELEGRAM БОТА НА PYTHON ДЛЯ ОДНОВРЕМЕННОГО УПРАВЛЕНИЯ МНОЖЕСТВОМ КОМПЬЮТЕРОВ С ПОМОЩЬЮ ИНТУИТИВНО ПОНЯТНЫХ ЭЛЕМЕНТОВ УПРАВЛЕНИЯ".lower())
+s = 'Hello, world!'
+for i in range(len(s)):
+    if s[i] > s[i+1]:
+        print(s[i+1], end='')
+    else:
+        print(s[i], end='')
